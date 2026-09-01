@@ -27,7 +27,8 @@ export const AuthProvider = ({ children }) => {
   const [dbStatus, setDbStatus] = useState('connecting');
 
   useEffect(() => {
-    const newSocket = io(`http://${window.location.hostname}:3001`);
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || `http://${window.location.hostname}:3001`;
+    const newSocket = io(backendUrl);
     
     const originalEmit = newSocket.emit;
     newSocket.emit = function(...args) {
