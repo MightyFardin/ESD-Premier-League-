@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { Moon, Sun, Monitor, Paintbrush, AlertTriangle, Shield, Bell, HardDrive, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Moon, Sun, Monitor, Paintbrush, AlertTriangle, Lock, Bell, HardDrive, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -284,7 +284,7 @@ export default function Settings() {
  {/* Security Section */}
  <section className="card-minimal p-6 bg-white dark:bg-[#111]">
  <div className="flex items-center gap-2 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
- <Shield className="text-amber-500" size={20} />
+ <Lock className="text-amber-500" size={20} />
  <h2 className="text-lg font-bold">Security</h2>
  </div>
  <div className="space-y-4">
@@ -375,7 +375,7 @@ export default function Settings() {
  <div className="card-minimal w-full max-w-sm p-6 animate-in zoom-in-95 bg-white dark:bg-[#111]">
  <div className="flex items-center gap-3 mb-3">
  <div className="p-2 bg-amber-100 dark:bg-amber-900/30 text-amber-600 rounded-full">
- <Shield size={24} />
+ <Lock size={24} />
  </div>
  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
  {pinAction === 'enable' ? 'Set App PIN' : 'Disable PIN'}
