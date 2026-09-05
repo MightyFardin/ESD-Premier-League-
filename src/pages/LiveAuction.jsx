@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
-import { Gavel, Undo2, XSquare, CheckSquare, Maximize, Minimize, Play, Search, TimerReset, Timer, Pause, Play as PlayIcon, Plus, TrendingUp, ShieldAlert, History, Users } from 'lucide-react';
 import CustomSelect from '../components/CustomSelect';
 
 const getSessionStr = (studentId) => {
@@ -44,8 +43,10 @@ export default function LiveAuction() {
   // Timer
   const [timeLeft, setTimeLeft] = useState(0);
   
-  // Cinematic Reveal State
   const [revealStage, setRevealStage] = useState('ready'); // 'position', 'session', 'full', 'ready'
+  
+  const [confirmAction, setConfirmAction] = useState(null); // 'sell' or 'unsold'
+  const [confirmUndoPlayer, setConfirmUndoPlayer] = useState(null);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -70,8 +71,17 @@ export default function LiveAuction() {
       showToast(err.message || "Bid failed. Are you logged in with a valid manager account?", "error");
     };
     
+    const handleAuctionAlert = (msg) => {
+      showToast(msg, "error");
+    };
+    
     socket.on('bidError', handleBidError);
-    return () => socket.off('bidError', handleBidError);
+    socket.on('auctionAlert', handleAuctionAlert);
+    
+    return () => {
+       socket.off('bidError', handleBidError);
+       socket.off('auctionAlert', handleAuctionAlert);
+    };
   }, [socket, showToast]);
 
   useEffect(() => {
@@ -178,9 +188,9 @@ export default function LiveAuction() {
         </div>
         <button 
           onClick={toggleFullscreen} 
-          className="btn-secondary py-1.5 px-3 text-xs"
+          className="btn-secondary py-1.5 px-3 text-[10px] font-black uppercase tracking-widest"
         >
-          {isFullscreen ? <><Minimize size={14} /> Exit Fullscreen</> : <><Maximize size={14} /> Fullscreen</>}
+          {isFullscreen ? 'EXIT FULLSCREEN' : 'FULLSCREEN'}
         </button>
       </div>
 
@@ -188,8 +198,8 @@ export default function LiveAuction() {
         <div className="space-y-6">
           {(!user.role || user.role === 'manager' || user.role === 'spectator') && (
             <div className="flex flex-col items-center justify-center min-h-[30vh] text-center p-8 card-minimal">
-              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
-                <Gavel size={40} className="text-slate-400" />
+              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 text-2xl font-black text-slate-300">
+                [A]
               </div>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">No Active Auction</h2>
               <p className="text-slate-500">Wait for the admin to start the next player bidding.</p>
@@ -210,7 +220,6 @@ export default function LiveAuction() {
                 
                 <div className="grid grid-cols-2 md:flex gap-2 z-20 w-full md:w-auto">
                   <div className="relative col-span-2 md:col-span-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                     <input 
                       type="text" 
                       placeholder="Search player..." 
@@ -264,13 +273,13 @@ export default function LiveAuction() {
                        </div>
                      </div>
                      {p.status === 'unsold' && (
-                       <button onClick={() => handleStartAuction(p.id)} className="btn-primary w-full py-2 flex items-center justify-center gap-2">
-                         <Play size={16} /> Start Auction
+                       <button onClick={() => handleStartAuction(p.id)} className="btn-primary w-full py-2 flex items-center justify-center gap-2 font-black tracking-widest uppercase text-[10px]">
+                         START AUCTION
                        </button>
                      )}
                      {p.status === 'sold' && (user.role === 'admin' || user.role === 'auctioneer') && (
-                       <button onClick={() => socket?.emit('undoSale', p.id)} className="btn-secondary text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 border-red-200 dark:border-red-900/50 w-full py-2 flex items-center justify-center gap-2">
-                         <Undo2 size={16} /> Mark Unsold
+                       <button onClick={() => setConfirmUndoPlayer(p)} className="btn-secondary text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 border-red-200 dark:border-red-900/50 w-full py-2 flex items-center justify-center gap-2 font-black tracking-widest uppercase text-[10px]">
+                         MARK UNSOLD
                        </button>
                      )}
                   </div>
@@ -282,108 +291,142 @@ export default function LiveAuction() {
       ) : (
         <div className="grid lg:grid-cols-3 gap-6 relative">
           
-          <div className="lg:col-span-2 card-minimal overflow-hidden relative min-h-[600px] flex flex-col">
-            {/* Timer Overlay / Section */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            
+            {/* Top Bar: Timer (No overlaps, cleanly positioned) */}
             {(liveAuction.auctionEndAt || liveAuction.timerPaused) && (
-              <div className="md:absolute md:top-6 md:right-6 z-20 flex flex-col items-center md:items-end gap-2 p-4 md:p-0 border-b border-slate-200 dark:border-slate-800 md:border-none bg-white/80 dark:bg-black/50 md:bg-transparent md:dark:bg-transparent backdrop-blur-md md:backdrop-blur-none">
-                <div className={`w-full md:w-auto justify-center md:justify-start px-4 py-3 md:py-2 rounded-xl flex items-center gap-2 font-black text-2xl md:text-xl md:shadow-lg border backdrop-blur-md transition-colors ${
-                  timeLeft === 0 ? 'bg-red-500/90 text-white border-red-400' 
-                  : liveAuction.timerPaused ? 'bg-amber-500/90 text-white border-amber-400'
-                  : timeLeft <= 10 ? 'bg-orange-500/90 text-white border-orange-400 animate-pulse'
-                  : 'bg-white/90 dark:bg-black/90 text-slate-900 dark:text-white border-slate-200 dark:border-slate-800'
-                }`}>
-                  {timeLeft === 0 ? <TimerReset size={24} /> : liveAuction.timerPaused ? <Pause size={24} /> : <Timer size={24} />}
-                  {timeLeft === 0 ? 'TIME UP!' : liveAuction.timerPaused ? `PAUSED (00:${timeLeft.toString().padStart(2, '0')})` : `00:${timeLeft.toString().padStart(2, '0')}`}
-                </div>
+              <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                     <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                     <span className="font-bold text-slate-500 uppercase tracking-widest text-xs">Live Auction</span>
+                  </div>
+                  <div className={`px-6 py-2 rounded-xl font-black text-2xl md:text-3xl transition-colors ${
+                    timeLeft === 0 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' 
+                    : liveAuction.timerPaused ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                    : timeLeft <= 10 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 animate-pulse'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                  }`}>
+                    {timeLeft === 0 ? 'TIME UP!' : liveAuction.timerPaused ? `PAUSED (00:${timeLeft.toString().padStart(2, '0')})` : `00:${timeLeft.toString().padStart(2, '0')}`}
+                  </div>
+              </div>
+            )}
+            
+            {/* Top Bar: Admin Controls (Zero Scrolling!) */}
+            {(user.role === 'admin' || user.role === 'auctioneer') && liveAuction.status === 'active' && (
+              <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm animate-pop-in">
+                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                     <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Auctioneer Controls</p>
+                     <div className="grid grid-cols-2 sm:grid-cols-3 md:flex gap-2 w-full md:w-auto">
+                       <button onClick={() => setConfirmAction('sell')} className="flex-1 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 py-3 md:py-2 md:px-6 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
+                         Finalize
+                       </button>
+                       <button onClick={() => setConfirmAction('unsold')} className="flex-1 bg-slate-200 hover:bg-red-100 dark:bg-slate-800 dark:hover:bg-red-900/40 text-slate-700 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-400 py-3 md:py-2 md:px-6 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
+                         Unsold
+                       </button>
+                       <button onClick={() => socket?.emit(liveAuction.timerPaused ? 'resumeTimer' : 'pauseTimer')} className="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 py-3 md:py-2 md:px-6 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
+                         {liveAuction.timerPaused ? '▶ Resume' : '⏸ Pause'}
+                       </button>
+                       <button onClick={() => socket?.emit('addTime', 10)} className="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 py-3 md:py-2 md:px-6 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all">
+                         + 10 Secs
+                       </button>
+                       {liveAuction.history?.length > 0 && (
+                         <button onClick={() => socket?.emit('revertBid')} className="flex-1 bg-slate-200 hover:bg-amber-100 dark:bg-slate-800 dark:hover:bg-amber-900/30 text-slate-700 hover:text-amber-700 dark:text-slate-300 dark:hover:text-amber-400 py-3 md:py-2 md:px-6 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all flex justify-center items-center gap-1">
+                           ↶ Undo
+                         </button>
+                       )}
+                     </div>
+                 </div>
               </div>
             )}
 
-            <div className="flex flex-col md:flex-row flex-1">
-              {/* Left Side: Player Info */}
-              <div key={currentPlayer.id} className="p-4 md:p-8 text-center border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#151515] md:w-[50%] lg:w-[45%] md:pt-8 overflow-hidden min-h-[300px] flex flex-col items-center justify-center relative">
+            <div className="grid md:grid-cols-2 gap-6 flex-1">
+              
+              {/* Left Side: Player Info Card */}
+              <div key={currentPlayer.id} className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col items-center justify-center shadow-sm min-h-[400px]">
                 
                 {revealStage === 'position' && (
-                   <div className="bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-slate-800 px-6 py-6 md:px-12 md:py-10 rounded-3xl shadow-2xl flex flex-col items-center gap-3 animate-smooth-reveal w-full max-w-sm mx-auto">
-                     <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-widest whitespace-nowrap text-center">
+                   <div className="text-center animate-pop-in">
+                     <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Player Position</h2>
+                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">
                        {getPositionStr(currentPlayer.position)}
                      </h1>
                    </div>
                 )}
                 
                 {revealStage === 'session' && (
-                   <div className="bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-slate-800 px-6 py-6 md:px-12 md:py-10 rounded-3xl shadow-2xl flex flex-col items-center gap-3 animate-smooth-reveal w-full max-w-sm mx-auto">
-                     <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-widest whitespace-nowrap text-center">
-                       SESSION<br/>{getSessionStr(currentPlayer.studentId)}
+                   <div className="text-center animate-pop-in">
+                     <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Player Session</h2>
+                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] leading-tight">
+                       {getSessionStr(currentPlayer.studentId)}
                      </h1>
                    </div>
                 )}
                 
                 {(revealStage === 'full' || revealStage === 'ready') && (
-                  <>
-                    <div className="animate-cinematic-image mb-6 w-full max-w-[240px] aspect-square mx-auto" style={{ animationDelay: '0.1s' }}>
-                      {currentPlayer.pic ? (
-                        <img src={currentPlayer.pic} alt="Profile" className="w-full h-full rounded-full object-cover drop-shadow-xl border-4 md:border-8 border-white dark:border-[#222]" />
-                      ) : (
-                        <div className="w-full h-full rounded-full bg-slate-200 dark:bg-slate-800 border-4 md:border-8 border-white dark:border-[#222] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex items-center justify-center">
-                           <span className="text-5xl md:text-7xl font-black text-slate-400">{currentPlayer.name.charAt(0)}</span>
-                        </div>
-                      )}
+                  <div className="w-full flex flex-col items-center justify-center animate-pop-in">
+                    <div className="w-40 h-40 md:w-56 md:h-56 mb-8 rounded-full overflow-hidden border-4 border-slate-100 dark:border-slate-800 shadow-md">
+                        {currentPlayer.pic ? (
+                          <img src={currentPlayer.pic} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                             <span className="text-6xl md:text-8xl font-black text-slate-300 dark:text-slate-600">{currentPlayer.name.charAt(0)}</span>
+                          </div>
+                        )}
                     </div>
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 text-slate-900 dark:text-white leading-tight tracking-tight animate-cinematic-text" style={{ animationDelay: '0.9s' }}>
+                    
+                    <h1 className="text-3xl md:text-4xl font-black mb-3 text-slate-900 dark:text-white text-center leading-tight tracking-tight">
                       {currentPlayer.name}
                     </h1>
-                    <p className="text-sm md:text-lg text-slate-500 font-medium px-4 animate-cinematic-text" style={{ animationDelay: '1.2s' }}>
-                      {getPositionStr(currentPlayer.position)} • <span className="whitespace-nowrap">{getSessionStr(currentPlayer.studentId)}</span>
-                    </p>
-                    <p className="text-xs md:text-base text-slate-800 dark:text-slate-200 bg-slate-200 dark:bg-slate-800 inline-block px-4 py-1.5 rounded-full font-bold mt-3 animate-cinematic-text" style={{ animationDelay: '1.4s' }}>
-                      Base: {auctionSettings?.defaultBasePrice || 100} pts
-                    </p>
                     
-                    {revealStage === 'full' && (
-                       <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-[1000]">
-                          <div className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 tracking-widest uppercase font-black text-2xl md:text-4xl px-12 py-4 rounded-full shadow-2xl animate-time-start">
-                             Time Starts
-                          </div>
-                       </div>
-                    )}
-                  </>
+                    <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                       <span className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-widest">{getPositionStr(currentPlayer.position)}</span>
+                       <span className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-widest">{getSessionStr(currentPlayer.studentId)}</span>
+                    </div>
+                    
+                    <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 px-6 py-2.5 rounded-xl">
+                       <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-[0.1em]">
+                          Base Price: <span className="text-indigo-700 dark:text-indigo-300 text-lg ml-1">{auctionSettings?.defaultBasePrice || 100}</span> pts
+                       </p>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* Right Side: Bidding Action */}
-              <div className="p-4 md:p-8 bg-white dark:bg-[#111] flex-1 flex flex-col justify-center">
-                <div key={`bid-${liveAuction.currentBid}-${liveAuction.highestBidderId}`} className="text-center mb-6 md:mb-10 animate-pop-in">
-                  <p className="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest mb-1 md:mb-2 flex items-center justify-center gap-2">
-                    <TrendingUp size={16} /> Current Highest Bid
+              {/* Right Side: Bidding Action Card */}
+              <div className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col justify-center shadow-sm">
+                <div key={`bid-${liveAuction.currentBid}-${liveAuction.highestBidderId}`} className="text-center mb-8 animate-pop-in">
+                  <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+                    Current Highest Bid
                   </p>
-                  <h2 className="text-5xl md:text-7xl font-black text-indigo-600 dark:text-indigo-400 mb-2">
-                    {liveAuction.currentBid?.toLocaleString()} <span className="text-xl md:text-3xl text-slate-500">pts</span>
+                  <h2 className="text-6xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">
+                    {liveAuction.currentBid?.toLocaleString()} <span className="text-2xl text-slate-400">pts</span>
                   </h2>
                   {highestBidder ? (
-                    <p className="text-sm md:text-lg font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 inline-block px-4 py-1.5 rounded-full">
-                      by {highestBidder.teamName || highestBidder.name}
-                    </p>
+                    <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-[#1a1a1a] text-slate-700 dark:text-slate-300 px-5 py-2 rounded-lg border border-slate-200 dark:border-slate-800">
+                      <span className="font-bold text-sm">Bid by</span>
+                      <span className="font-black text-sm uppercase tracking-wider">{highestBidder.teamName || highestBidder.name}</span>
+                    </div>
                   ) : (
-                    <p className="text-xs md:text-sm font-bold text-slate-500">Waiting for bids...</p>
+                    <p className="text-sm font-bold text-slate-400 bg-slate-50 dark:bg-[#1a1a1a] inline-block px-5 py-2 rounded-lg border border-slate-100 dark:border-slate-800">Waiting for bids...</p>
                   )}
                 </div>
 
                 {user.role === 'manager' ? (
-                  <div className="space-y-4 max-w-lg mx-auto w-full">
+                  <div className="space-y-4 w-full mt-auto">
                     <button 
                       onClick={() => handleBid(null)}
                       disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam.id}
-                      className="btn-primary w-full py-4 md:py-6 text-xl md:text-2xl font-black shadow-xl md:shadow-2xl shadow-indigo-500/20 md:shadow-indigo-500/30 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-4 md:py-5 text-xl font-black rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                     >
-                      {liveAuction.highestBidderId === myTeam.id ? 'HIGHEST BIDDER' : isFirstBid ? `BID BASE PRICE (${liveAuction.currentBid})` : `BID +${currentIncrement} Points`}
+                      {liveAuction.highestBidderId === myTeam.id ? 'YOU ARE HIGHEST' : isFirstBid ? `BID BASE (${liveAuction.currentBid})` : `BID +${currentIncrement}`}
                     </button>
                     
                     {auctionSettings?.allowCustomBids && (
-                      <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                      <div className="flex flex-col sm:flex-row gap-3">
                         <input 
                           type="number" 
-                          className="input-field h-12 md:h-14 flex-1 text-center sm:text-left text-base md:text-lg font-bold" 
-                          placeholder="Custom amount..."
+                          className="bg-slate-50 dark:bg-[#151515] border border-slate-200 dark:border-slate-800 rounded-xl h-14 px-4 flex-1 text-center sm:text-left text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" 
+                          placeholder="Custom bid..."
                           value={customBid}
                           onChange={e => setCustomBid(e.target.value)}
                           disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam.id}
@@ -391,40 +434,25 @@ export default function LiveAuction() {
                         <button 
                           onClick={() => {
                             const val = parseInt(customBid);
-                            if (val > liveAuction.currentBid) handleBid(val);
-                            else showToast("Bid must be higher than current bid!", 'error');
+                            if (isNaN(val)) return showToast("Enter a valid amount", "error");
+                            if (isFirstBid ? val >= liveAuction.currentBid : val > liveAuction.currentBid) {
+                               handleBid(val);
+                            } else {
+                               showToast(`Bid must be ${isFirstBid ? 'at least' : 'higher than'} current bid!`, 'error');
+                            }
                           }}
                           disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam.id}
-                          className="btn-secondary h-12 md:h-14 px-8 text-base md:text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-14 px-6 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Bid Custom
+                          Place Bid
                         </button>
                       </div>
                     )}
                     
-                    <div className="mt-4 md:mt-6 p-4 bg-slate-50 dark:bg-[#1a1a1a] rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                      <span className="font-bold text-sm md:text-base text-slate-500">Your Remaining Budget</span>
-                      <span className="font-black text-lg md:text-xl text-slate-900 dark:text-white">{myTeam?.budget?.toLocaleString() || 0} pts</span>
+                    <div className="mt-4 p-4 bg-slate-50 dark:bg-[#151515] rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                      <span className="font-bold text-xs uppercase tracking-widest text-slate-500">Remaining Budget</span>
+                      <span className="font-black text-lg text-slate-900 dark:text-white">{myTeam?.budget?.toLocaleString() || 0} pts</span>
                     </div>
-                  </div>
-                ) : (user.role === 'admin' || user.role === 'auctioneer') ? (
-                  <div className="hidden md:flex flex-col gap-4 justify-center max-w-lg mx-auto mt-8 w-full">
-                     <div className="flex flex-col md:flex-row gap-2 w-full">
-                       <button onClick={() => socket?.emit(liveAuction.timerPaused ? 'resumeTimer' : 'pauseTimer')} className="btn-secondary flex-1 py-3 text-sm font-bold flex justify-center items-center gap-2">
-                         {liveAuction.timerPaused ? <><PlayIcon size={16} className="text-emerald-500" /> Resume Timer</> : <><Pause size={16} className="text-amber-500" /> Pause Timer</>}
-                       </button>
-                       <button onClick={() => socket?.emit('addTime', 10)} className="btn-secondary flex-1 py-3 text-sm font-bold flex justify-center items-center gap-2 text-indigo-600 dark:text-indigo-400">
-                         <Plus size={16} /> Add 10s
-                       </button>
-                     </div>
-                     <div className="flex flex-col md:flex-row gap-4 w-full">
-                       <button onClick={() => socket?.emit('stopAuction', 'sell')} className="btn-primary flex-1 bg-emerald-600 hover:bg-emerald-700 py-4 text-lg shadow-lg shadow-emerald-500/20">
-                         <CheckSquare size={18} className="w-5 h-5" /> Finalize Sale
-                       </button>
-                       <button onClick={() => socket?.emit('stopAuction', 'unsold')} className="btn-secondary flex-1 py-4 text-lg text-red-500 hover:text-red-600 border-red-200 hover:border-red-300 bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:border-red-900/50">
-                         <XSquare size={18} className="w-5 h-5" /> Mark Unsold
-                       </button>
-                     </div>
                   </div>
                 ) : null}
               </div>
@@ -437,7 +465,7 @@ export default function LiveAuction() {
              {(user.role === 'admin' || user.role === 'auctioneer') && (
                <div className="card-minimal flex-1 flex flex-col overflow-hidden">
                   <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#151515] flex items-center justify-between">
-                     <h3 className="font-bold text-sm md:text-base flex items-center gap-2"><Users size={16} /> Team Budgets</h3>
+                     <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-500">Team Budgets</h3>
                   </div>
                   <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                      {managers.map(m => {
@@ -461,66 +489,95 @@ export default function LiveAuction() {
              {/* Bid History Area */}
              <div className="card-minimal flex-1 flex flex-col overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-[#151515] flex items-center justify-between">
-                   <h3 className="font-bold text-sm md:text-base flex items-center gap-2"><History size={16} /> Bid History</h3>
-                {(user.role === 'admin' || user.role === 'auctioneer') && liveAuction.history?.length > 0 && (
-                  <button onClick={() => socket?.emit('revertBid')} className="hidden md:flex text-sm font-bold text-slate-500 hover:text-red-500 items-center gap-1 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
-                    <Undo2 size={16} /> Revert Last
-                  </button>
-                )}
-             </div>
-             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                {(!liveAuction.history || liveAuction.history.length === 0) ? (
-                   <div className="text-center mt-12 text-slate-400">
-                     <History size={48} className="mx-auto mb-4 opacity-20" />
-                     <p className="font-medium">No bids have been placed yet.</p>
-                   </div>
-                ) : (
-                   liveAuction.history.map((bid, i) => (
-                      <div key={i} className={`p-4 rounded-xl border flex justify-between items-center transition-all ${i === 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800 scale-100 shadow-md' : 'bg-slate-50 dark:bg-[#1a1a1a] border-slate-100 dark:border-slate-800 opacity-80'}`}>
-                         <div>
-                           <p className={`font-bold ${i === 0 ? 'text-indigo-700 dark:text-indigo-400 text-lg' : 'text-slate-700 dark:text-slate-300'}`}>{bid.managerName}</p>
-                           <p className="text-xs text-slate-400 font-medium">{new Date(bid.time).toLocaleTimeString()}</p>
-                         </div>
-                         <p className={`font-black ${i === 0 ? 'text-indigo-600 dark:text-indigo-400 text-lg' : 'text-slate-600 dark:text-slate-500 text-base'}`}>
-                           {bid.amount.toLocaleString()} <span className="text-[10px] font-bold text-slate-400">pts</span>
-                         </p>
+                   <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-500">Bid History</h3>
+                   {(user.role === 'admin' || user.role === 'auctioneer') && liveAuction.history?.length > 0 && (
+                     <button onClick={() => socket?.emit('revertBid')} className="hidden md:flex text-[10px] font-black tracking-widest uppercase text-slate-500 hover:text-red-500 items-center gap-1 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
+                       REVERT LAST
+                     </button>
+                   )}
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                   {(!liveAuction.history || liveAuction.history.length === 0) ? (
+                      <div className="text-center mt-12 text-slate-400">
+                        <div className="font-black text-2xl text-slate-200 dark:text-slate-800 mb-2">---</div>
+                        <p className="font-bold text-[10px] uppercase tracking-widest">No bids have been placed yet.</p>
                       </div>
+                   ) : (
+                      liveAuction.history.map((bid, i) => (
+                         <div key={i} className={`p-4 rounded-xl border flex justify-between items-center transition-all ${i === 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800 scale-100 shadow-md' : 'bg-slate-50 dark:bg-[#1a1a1a] border-slate-100 dark:border-slate-800 opacity-80'}`}>
+                            <div>
+                              <p className={`font-bold ${i === 0 ? 'text-indigo-700 dark:text-indigo-400 text-lg' : 'text-slate-700 dark:text-slate-300'}`}>{bid.managerName}</p>
+                              <p className="text-xs text-slate-400 font-medium">{new Date(bid.time).toLocaleTimeString()}</p>
+                            </div>
+                            <p className={`font-black ${i === 0 ? 'text-indigo-600 dark:text-indigo-400 text-lg' : 'text-slate-600 dark:text-slate-500 text-base'}`}>
+                              {bid.amount.toLocaleString()} <span className="text-[10px] font-bold text-slate-400">pts</span>
+                            </p>
+                         </div>
+
                    ))
                 )}
              </div>
           </div>
         </div>
           
-          {/* Mobile Admin Action Bar (Kept intact for mobile) */}
-          {(user.role === 'admin' || user.role === 'auctioneer') && liveAuction.status === 'active' && (
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 p-3 z-[100] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] flex flex-col gap-3 pb-6">
-              <div className="flex gap-2">
-                <button onClick={() => socket?.emit('stopAuction', 'sell')} className="flex-1 bg-emerald-600 active:bg-emerald-700 text-white py-3 rounded-xl font-bold flex flex-col items-center justify-center gap-1 shadow-lg shadow-emerald-600/20">
-                  <CheckSquare size={22} /> <span className="text-[10px] uppercase tracking-wider">Finalize</span>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center">
+             <div className="w-16 h-16 mx-auto bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-3xl font-black text-slate-400">
+                ?
+             </div>
+             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">
+                {confirmAction === 'sell' ? 'Finalize Sale?' : 'Mark Unsold?'}
+             </h3>
+             <p className="text-sm text-slate-500 mb-6">
+                {confirmAction === 'sell' 
+                  ? `Are you sure you want to sell ${currentPlayer?.name} to ${highestBidder?.name || highestBidder?.teamName} for ${liveAuction.currentBid} points?`
+                  : `Are you sure you want to skip ${currentPlayer?.name} and mark them as unsold?`}
+             </p>
+             <div className="flex gap-3">
+                <button onClick={() => setConfirmAction(null)} className="flex-1 btn-secondary py-3">Cancel</button>
+                <button 
+                  onClick={() => {
+                     socket?.emit('stopAuction', confirmAction);
+                     setConfirmAction(null);
+                  }} 
+                  className={`flex-1 py-3 font-bold rounded-xl text-white ${confirmAction === 'sell' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-500 hover:bg-red-600'}`}
+                >
+                   Confirm
                 </button>
-                <button onClick={() => socket?.emit('stopAuction', 'unsold')} className="flex-1 bg-red-500 active:bg-red-600 text-white py-3 rounded-xl font-bold flex flex-col items-center justify-center gap-1 shadow-lg shadow-red-500/20">
-                  <XSquare size={22} /> <span className="text-[10px] uppercase tracking-wider">Unsold</span>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Undo Sale Confirmation Modal */}
+      {confirmUndoPlayer && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center border border-red-200 dark:border-red-900/30">
+             <div className="w-16 h-16 mx-auto bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-4 text-3xl font-black">
+                !
+             </div>
+             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">Undo Sale?</h3>
+             <p className="text-sm font-bold text-slate-500 mb-6">
+                Are you sure you want to mark <span className="text-red-500">{confirmUndoPlayer.name}</span> as unsold? This will refund their team's budget.
+             </p>
+             <div className="flex gap-3">
+                <button onClick={() => setConfirmUndoPlayer(null)} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold">Cancel</button>
+                <button 
+                  onClick={() => {
+                     socket?.emit('undoSale', confirmUndoPlayer.id);
+                     setConfirmUndoPlayer(null);
+                  }} 
+                  className="flex-1 py-3 font-bold rounded-xl text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20"
+                >
+                   Confirm
                 </button>
-                
-                {liveAuction.history?.length > 0 && (
-                  <button onClick={() => socket?.emit('revertBid')} className="flex-1 bg-slate-800 dark:bg-slate-700 active:bg-slate-900 text-white py-3 rounded-xl font-bold flex flex-col items-center justify-center gap-1 shadow-lg shadow-slate-900/20">
-                    <Undo2 size={22} /> <span className="text-[10px] uppercase tracking-wider">Undo Bid</span>
-                  </button>
-                )}
-              </div>
-              
-              {true && (
-                <div className="flex gap-2">
-                  <button onClick={() => socket?.emit(liveAuction.timerPaused ? 'resumeTimer' : 'pauseTimer')} className="flex-[2] bg-slate-100 dark:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 py-3 rounded-lg font-bold flex items-center justify-center gap-2 text-sm text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700">
-                    {liveAuction.timerPaused ? <><PlayIcon size={16} /> Resume Timer</> : <><Pause size={16} /> Pause Timer</>}
-                  </button>
-                  <button onClick={() => socket?.emit('addTime', 10)} className="flex-1 bg-slate-100 dark:bg-slate-800 active:bg-slate-200 dark:active:bg-slate-700 py-3 rounded-lg font-bold flex items-center justify-center gap-1 text-sm text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700">
-                    <Plus size={16} /> 10s
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+             </div>
+          </div>
         </div>
       )}
     </div>

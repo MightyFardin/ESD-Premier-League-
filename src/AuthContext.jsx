@@ -15,6 +15,8 @@ export const AuthProvider = ({ children }) => {
   const [liveAuction, setLiveAuction] = useState({
     status: 'idle', currentPlayerId: null, currentBid: 0, currentIncrement: 10, highestBidderId: null, history: []
   });
+  const [bids, setBids] = useState([]);
+  const [logs, setLogs] = useState([]);
   
   const [auctionSettings, setAuctionSettings] = useState({ incrementRules: [] });
 
@@ -48,6 +50,8 @@ export const AuthProvider = ({ children }) => {
       setPlayers(state.players);
       setManagers(state.managers);
       setLiveAuction(state.liveAuction);
+      setBids(state.bids || []);
+      setLogs(state.logs || []);
       if (state.settings) setAuctionSettings(state.settings);
       
       setDbStatus('saved');
@@ -97,7 +101,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{
       user, login, logout,
-      players, managers, liveAuction, auctionSettings,
+      players, managers, liveAuction, auctionSettings, bids, logs,
       settings, setSettings,
       socket, dbStatus
     }}>

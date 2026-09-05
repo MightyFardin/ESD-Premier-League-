@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 const ToastContext = createContext();
 
@@ -34,14 +33,14 @@ export const ToastProvider = ({ children }) => {
               'bg-slate-800 text-white'
             }`}
           >
-            {toast.type === 'success' && <CheckCircle size={20} />}
-            {toast.type === 'error' && <AlertCircle size={20} />}
-            {toast.type === 'info' && <Info size={20} />}
+            {toast.type === 'success' && <div className="text-[10px] font-black tracking-widest uppercase">OK</div>}
+            {toast.type === 'error' && <div className="text-[10px] font-black tracking-widest uppercase">ERR</div>}
+            {toast.type === 'info' && <div className="text-[10px] font-black tracking-widest uppercase">INFO</div>}
             
             <p className="font-bold text-sm pr-6">{toast.message}</p>
             
-            <button onClick={() => removeToast(toast.id)} className="absolute right-3 opacity-60 hover:opacity-100 transition-opacity">
-              <X size={16} />
+            <button onClick={() => removeToast(toast.id)} className="absolute right-3 opacity-60 hover:opacity-100 transition-opacity font-black text-xs uppercase">
+              X
             </button>
           </div>
         ))}

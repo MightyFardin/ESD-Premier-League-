@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: 'postgresql://postgres.ilaozbmvkktwvdzkvvoj:b%2A%23ThKXfqG8VtrD@aws-0-ap-south-1.pooler.supabase.com:5432/postgres',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres.ilaozbmvkktwvdzkvvoj:b%2A%23ThKXfqG8VtrD@aws-0-ap-south-1.pooler.supabase.com:5432/postgres',
   ssl: { rejectUnauthorized: false } // Required by Supabase
 });
 
@@ -40,6 +40,21 @@ async function initDB() {
         id INTEGER PRIMARY KEY,
         data JSONB
       );
+
+      CREATE TABLE IF NOT EXISTS bids (
+        id SERIAL PRIMARY KEY,
+        "playerId" TEXT,
+        "managerId" TEXT,
+        amount INTEGER,
+        "timestamp" TIMESTAMPTZ DEFAULT NOW()
+      );
+      
+      CREATE TABLE IF NOT EXISTS system_logs (
+        id SERIAL PRIMARY KEY,
+        message TEXT,
+        type TEXT,
+        "timestamp" TIMESTAMPTZ DEFAULT NOW()
+      );
     `);
     console.log("Supabase Postgres DB initialized");
   } finally {
@@ -53,11 +68,15 @@ async function loadState(defaultSettings) {
     const playersRes = await client.query('SELECT * FROM players');
     const managersRes = await client.query('SELECT * FROM managers');
     const settingsRes = await client.query('SELECT data FROM settings WHERE id = 1');
+    const bidsRes = await client.query('SELECT * FROM bids ORDER BY timestamp DESC');
+    const logsRes = await client.query('SELECT * FROM system_logs ORDER BY timestamp DESC LIMIT 100');
     
     return {
       players: playersRes.rows,
       managers: managersRes.rows,
-      settings: settingsRes.rows.length > 0 ? settingsRes.rows[0].data : defaultSettings
+      settings: settingsRes.rows.length > 0 ? settingsRes.rows[0].data : defaultSettings,
+      bids: bidsRes.rows,
+      logs: logsRes.rows
     };
   } finally {
     client.release();
@@ -106,8 +125,36 @@ async function saveSettings(settings) {
 async function clearSystem() {
    await pool.query('DELETE FROM players');
    await pool.query('DELETE FROM managers');
+   await pool.query('DELETE FROM bids');
+   await pool.query('DELETE FROM system_logs');
+}
+
+async function clearLogsDB() {
+   await pool.query('DELETE FROM system_logs');
+}
+
+async function saveBid(bid) {
+  await pool.query(`
+    INSERT INTO bids ("playerId", "managerId", amount, timestamp)
+    VALUES ($1, $2, $3, $4)
+  `, [bid.playerId, bid.managerId, bid.amount, bid.timestamp]);
+}
+
+async function deleteManagerDB(id) {
+  await pool.query('DELETE FROM managers WHERE id = $1', [id]);
+}
+
+async function saveLog(message, type) {
+  try {
+    await pool.query(`
+      INSERT INTO system_logs (message, type)
+      VALUES ($1, $2)
+    `, [message, type]);
+  } catch (err) {
+    console.error("Failed to save log:", err);
+  }
 }
 
 module.exports = {
-  initDB, loadState, savePlayer, deletePlayerDB, saveManager, saveSettings, clearSystem
+  initDB, loadState, savePlayer, deletePlayerDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog
 };

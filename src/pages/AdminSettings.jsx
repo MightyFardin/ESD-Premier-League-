@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
-import { Save, Plus, X, Settings2, Lock, AlertTriangle, Clock } from 'lucide-react';
 
 export default function AdminSettings() {
   const { auctionSettings, socket } = useAuth();
@@ -66,8 +65,8 @@ export default function AdminSettings() {
           <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">System Settings</h1>
           <p className="text-slate-500">Configure core auction rules and system-wide constants.</p>
         </div>
-        <button onClick={handleSave} className="btn-primary py-3 px-8 text-sm shadow-lg shadow-indigo-500/20 whitespace-nowrap">
-          <Save size={18} /> Save All Settings
+        <button onClick={handleSave} className="btn-primary py-3 px-8 text-[10px] tracking-widest uppercase font-black shadow-lg shadow-indigo-500/20 whitespace-nowrap">
+          SAVE ALL SETTINGS
         </button>
       </div>
 
@@ -91,7 +90,6 @@ export default function AdminSettings() {
         {activeTab === 'general' && (
           <div className="card-minimal p-6 md:p-8 space-y-8">
             <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 mb-6">
-              <Settings2 size={24} />
               <h2 className="text-xl font-bold">General Parameters</h2>
             </div>
             
@@ -147,7 +145,6 @@ export default function AdminSettings() {
           <div className="space-y-6">
             <div className="card-minimal p-6 md:p-8">
               <div className="flex items-center gap-2 text-orange-500 mb-6">
-                <Clock size={24} />
                 <h2 className="text-xl font-bold">Auction Timer</h2>
               </div>
               
@@ -166,10 +163,9 @@ export default function AdminSettings() {
             <div className="card-minimal p-6 md:p-8">
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                  <Lock size={24} />
                   <h2 className="text-xl font-bold">Dynamic Bid Increments</h2>
                 </div>
-                <button onClick={addRule} className="btn-secondary py-2 text-xs px-4"><Plus size={16} /> Add Rule</button>
+                <button onClick={addRule} className="btn-secondary py-2 text-[10px] font-black tracking-widest uppercase px-4">+ ADD RULE</button>
               </div>
               
               <div className="bg-slate-50 dark:bg-[#1a1a1a] p-4 rounded-xl border border-slate-100 dark:border-slate-800">
@@ -188,7 +184,7 @@ export default function AdminSettings() {
                       <input type="number" value={rule.threshold} onChange={e => updateRule(i, 'threshold', e.target.value)} className="input-field w-32 px-3 py-1.5 h-10 font-bold" />
                       <span className="text-slate-500 font-bold uppercase tracking-wider text-xs ml-2">&rarr; Increment By</span>
                       <input type="number" value={rule.increment} onChange={e => updateRule(i, 'increment', e.target.value)} className="input-field w-24 px-3 py-1.5 h-10 font-bold text-indigo-600 dark:text-indigo-400" />
-                      <button onClick={() => removeRule(i)} className="text-red-500 hover:text-red-700 ml-auto p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"><X size={18} /></button>
+                      <button onClick={() => removeRule(i)} className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-700 ml-auto px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">REMOVE</button>
                     </div>
                   ))}
                 </div>
@@ -212,7 +208,7 @@ export default function AdminSettings() {
           <div className="card-minimal border-red-500/20 border-2 overflow-hidden">
             <div className="bg-red-50 dark:bg-red-900/10 p-6 md:p-8">
               <h2 className="text-2xl font-black text-red-600 dark:text-red-500 flex items-center gap-2 mb-2">
-                <AlertTriangle size={28} /> Danger Zone
+                Danger Zone
               </h2>
               <p className="text-red-800/70 dark:text-red-200/70 mb-6">Destructive actions that cannot be undone. Proceed with extreme caution.</p>
               

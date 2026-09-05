@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
-import { User, Gavel, LayoutDashboard, X, Trophy } from 'lucide-react';
 
 export default function Login() {
   const { login, managers, auctionSettings } = useAuth();
@@ -46,9 +45,9 @@ export default function Login() {
   };
 
   const loginTypes = [
-    { id: 'manager', label: 'Manager', icon: <User size={16} /> },
-    { id: 'podium', label: 'Podium', icon: <Gavel size={16} /> },
-    { id: 'admin', label: 'Admin', icon: <LayoutDashboard size={16} /> }
+    { id: 'manager', label: 'Manager' },
+    { id: 'podium', label: 'Podium' },
+    { id: 'admin', label: 'Admin' }
   ];
 
   return (
@@ -87,7 +86,7 @@ export default function Login() {
       <div className="relative z-10 text-center px-6 w-full flex flex-col items-center justify-center">
          
          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 backdrop-blur-md mb-8 animate-slide-up shadow-sm" style={{ animationDelay: '100ms' }}>
-            <Trophy size={14} className="text-fuchsia-500 dark:text-fuchsia-400" />
+            <span className="text-fuchsia-500 dark:text-fuchsia-400 font-bold">★</span>
             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">Live Transfer Window</span>
          </div>
          
@@ -121,9 +120,9 @@ export default function Login() {
           <div className="relative w-full max-w-[400px] bg-white dark:bg-[#0a0a0a] rounded-[2rem] p-6 sm:p-8 shadow-2xl shadow-black/5 animate-slide-up border border-slate-100 dark:border-slate-800/60" style={{ animationDuration: '0.4s' }}>
             <button 
               onClick={() => setIsLoginOpen(false)} 
-              className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+              className="absolute top-5 right-5 p-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
             >
-              <X size={18} strokeWidth={2} />
+              CLOSE
             </button>
             
             <div className="mb-8 pr-8">
@@ -146,7 +145,6 @@ export default function Login() {
                       : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   }`}
                 >
-                  {type.icon}
                   {type.label}
                 </button>
               ))}

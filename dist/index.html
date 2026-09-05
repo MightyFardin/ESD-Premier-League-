@@ -33,32 +33,8 @@
     <!-- Fonts & Styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" integrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71bZBTIQHQ" crossorigin="anonymous">
-    <style>
-      body {
-        background-color: #0f172a; /* Match capacitor splash screen bg */
-        margin: 0;
-      }
-    </style>
-    <script>
-      (function() {
-        try {
-          const stored = localStorage.getItem('sh2_settings');
-          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          let theme = 'system';
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            if (parsed.theme) theme = parsed.theme;
-          }
-          if (theme === 'dark' || (theme === 'system' && isDark)) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.add('light');
-          }
-        } catch (e) {}
-      })();
-    </script>
-    <script type="module" crossorigin src="/assets/index-BymOOxi2.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CVTPxh8h.css">
+    <script type="module" crossorigin src="/assets/index-D3JqiLs0.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CFDJ18XB.css">
   </head>
   <body>
     <div id="root"></div>
