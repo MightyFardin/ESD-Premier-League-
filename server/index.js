@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const { initDB, loadState, savePlayer, deletePlayerDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog } = require('./db');
+const { initDB, loadState, savePlayer, deletePlayerDB, deleteAllPlayersDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog } = require('./db');
 
 const app = express();
 app.use(cors());
@@ -116,6 +116,14 @@ async function startServer() {
       savePlayer(player).catch(e => console.error(e));
     });
 
+    socket.on('importPlayers', async (newPlayers) => {
+      state.players.push(...newPlayers);
+      broadcastState();
+      for (const p of newPlayers) {
+        await savePlayer(p).catch(e => console.error(e));
+      }
+    });
+
     socket.on('editPlayer', (updatedPlayer) => {
       state.players = state.players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p);
       broadcastState();
@@ -126,6 +134,12 @@ async function startServer() {
       state.players = state.players.filter(p => p.id !== playerId);
       broadcastState();
       deletePlayerDB(playerId).catch(e => console.error(e));
+    });
+
+    socket.on('deleteAllPlayers', () => {
+      state.players = [];
+      broadcastState();
+      deleteAllPlayersDB().catch(e => console.error(e));
     });
 
     socket.on('undoSale', (playerId) => {
@@ -170,6 +184,11 @@ async function startServer() {
     socket.on('startAuction', (playerId) => {
       const player = state.players.find(p => p.id === playerId);
       if (player) {
+        if (state.settings.auctionStartDate) {
+          state.settings.auctionStartDate = '';
+          saveSettings(state.settings).catch(e => console.error(e));
+        }
+        
         const basePrice = state.settings.defaultBasePrice;
         state.liveAuction = {
           status: 'active',
@@ -279,6 +298,35 @@ async function startServer() {
       const isFirstBid = state.liveAuction.highestBidderId === null;
       const isValidAmount = isFirstBid ? amount >= state.liveAuction.currentBid : amount > state.liveAuction.currentBid;
       const isConsecutiveBid = state.liveAuction.highestBidderId === managerId;
+      
+      const totalPlayers = state.players.length;
+      const totalTeams = state.managers.length;
+      
+      if (totalTeams > 0) {
+        const baseQuota = Math.floor(totalPlayers / totalTeams);
+        
+        const managerPlayerCounts = {};
+        state.managers.forEach(m => managerPlayerCounts[m.id] = 0);
+        state.players.forEach(p => {
+           if (p.status === 'sold' && p.teamId) {
+             managerPlayerCounts[p.teamId] = (managerPlayerCounts[p.teamId] || 0) + 1;
+           }
+        });
+        
+        const allTeamsFull = state.managers.every(m => managerPlayerCounts[m.id] >= baseQuota);
+        const thisManagerCount = managerPlayerCounts[managerId] || 0;
+        
+        if (!allTeamsFull && thisManagerCount >= baseQuota) {
+           socket.emit('bidError', { message: `Quota Reached: You have ${baseQuota} players. You must wait for all other teams to reach ${baseQuota} players before bidding on extras.` });
+           return;
+        }
+        
+        // Enforce global max squad size setting
+        if (thisManagerCount >= state.settings.maxSquadSize) {
+           socket.emit('bidError', { message: `Squad Full: You cannot exceed the maximum squad size of ${state.settings.maxSquadSize} players.` });
+           return;
+        }
+      }
       
       if (remainingBudget <= 0) {
          socket.emit('bidError', { message: "Your budget has been exhausted!" });

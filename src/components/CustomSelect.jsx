@@ -31,7 +31,7 @@ export default function CustomSelect({ name, options, value, onChange, placehold
       </div>
       
       {isOpen && (
-        <div className="w-full mt-2 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-slate-800 rounded-xl shadow-inner overflow-hidden py-1 transition-all">
+        <div className="absolute z-50 w-full mt-2 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl overflow-hidden py-1 transition-all">
           {options.map((opt) => (
             <div
               key={opt.value}

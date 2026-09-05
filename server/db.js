@@ -133,6 +133,10 @@ async function clearLogsDB() {
    await pool.query('DELETE FROM system_logs');
 }
 
+async function deleteAllPlayersDB() {
+   await pool.query('DELETE FROM players');
+}
+
 async function saveBid(bid) {
   await pool.query(`
     INSERT INTO bids ("playerId", "managerId", amount, timestamp)
@@ -156,5 +160,5 @@ async function saveLog(message, type) {
 }
 
 module.exports = {
-  initDB, loadState, savePlayer, deletePlayerDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog
+  initDB, loadState, savePlayer, deletePlayerDB, deleteAllPlayersDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog
 };
