@@ -164,16 +164,16 @@ export default function Login() {
           <div className="relative w-full max-w-[360px] sm:max-w-3xl bg-white dark:bg-[#0a0a0c] rounded-[1.5rem] shadow-2xl shadow-black/20 animate-slide-up border border-slate-100 dark:border-slate-800/60 flex flex-col sm:flex-row overflow-hidden max-h-[90vh] sm:max-h-auto" style={{ animationDuration: '0.4s' }}>
             
             {/* Left side art (hidden on mobile) */}
-            <div className="hidden sm:flex sm:w-5/12 bg-slate-950 relative items-center justify-center p-8 overflow-hidden shrink-0 border-r border-slate-100 dark:border-slate-800/60">
+            <div className="hidden sm:flex sm:w-5/12 bg-slate-50 dark:bg-[#08080a] relative items-center justify-center p-8 overflow-hidden shrink-0 border-r border-slate-100 dark:border-slate-800/60">
               <div className="absolute inset-0 opacity-[0.03] dark:opacity-10 bg-[radial-gradient(circle_at_center,rgba(0,0,0,1)_1px,transparent_1px)] dark:bg-[radial-gradient(circle_at_center,rgba(255,255,255,1)_1px,transparent_1px)] bg-[length:12px_12px]"></div>
               
               <div className="relative z-10 flex flex-col items-start text-left w-full pl-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-white/5 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                    <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">System Online</span>
                 </div>
                 
-                <h3 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter mb-4 leading-[1.1]">
+                <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-4 leading-[1.1]">
                   Command<br/>
                   <span className="text-slate-400 dark:text-slate-500">Your</span><br/>
                   Legacy.
