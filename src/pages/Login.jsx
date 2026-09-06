@@ -78,6 +78,13 @@ export default function Login() {
         }
       `}</style>
       
+      {/* Premium Colorful Mesh Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+         <div className="absolute top-[5%] left-[15%] w-[40vw] h-[40vw] bg-fuchsia-400/20 dark:bg-fuchsia-600/15 blur-[100px] md:blur-[120px] rounded-full animate-[pulse_10s_ease-in-out_infinite]"></div>
+         <div className="absolute bottom-[5%] right-[15%] w-[45vw] h-[45vw] bg-cyan-400/20 dark:bg-cyan-600/15 blur-[120px] md:blur-[140px] rounded-full animate-[pulse_12s_ease-in-out_infinite_alternate]"></div>
+         <div className="absolute top-[40%] left-[45%] w-[35vw] h-[35vw] bg-violet-400/20 dark:bg-violet-600/15 blur-[100px] md:blur-[120px] rounded-full animate-[pulse_14s_ease-in-out_infinite]"></div>
+      </div>
+      
       {/* Hero Section */}
       <div className="relative z-10 w-full max-w-5xl text-center flex flex-col items-center my-auto">
          
@@ -127,21 +134,21 @@ export default function Login() {
             </div>
             
             <div className="p-4 sm:p-5 rounded-[1.5rem] bg-white/40 dark:bg-black/20 border border-slate-200/50 dark:border-white/5 backdrop-blur-md text-center hover:bg-white/60 dark:hover:bg-white/10 transition-all hover:-translate-y-1">
-              <p className="text-2xl sm:text-3xl font-black text-fuchsia-600 dark:text-fuchsia-400 mb-1">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-1">
                 {players?.length || 0}
               </p>
               <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Players in Pool</p>
             </div>
 
             <div className="p-4 sm:p-5 rounded-[1.5rem] bg-white/40 dark:bg-black/20 border border-slate-200/50 dark:border-white/5 backdrop-blur-md text-center hover:bg-white/60 dark:hover:bg-white/10 transition-all hover:-translate-y-1">
-              <p className="text-2xl sm:text-3xl font-black text-cyan-600 dark:text-cyan-400 mb-1">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-1">
                 {players?.filter(p => p.status === 'sold').length || 0}
               </p>
               <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Players Sold</p>
             </div>
 
             <div className="p-4 sm:p-5 rounded-[1.5rem] bg-white/40 dark:bg-black/20 border border-slate-200/50 dark:border-white/5 backdrop-blur-md text-center hover:bg-white/60 dark:hover:bg-white/10 transition-all hover:-translate-y-1">
-              <p className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 mb-1">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-1">
                 {((managers?.length || 0) * (auctionSettings?.defaultManagerBudget || 10000)).toLocaleString()}
               </p>
               <p className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Global Purse</p>
