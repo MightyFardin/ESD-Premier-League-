@@ -120,7 +120,7 @@ export default function ManagerDashboard() {
                              <span className="text-base font-black text-slate-400">{p.name.charAt(0)}</span>
                           </div>
                         )}
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <p className="font-bold text-base text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors break-words">{p.name}</p>
                           <p className="text-xs font-medium text-slate-500 tracking-wide">{p.position}</p>
                         </div>
@@ -167,7 +167,7 @@ export default function ManagerDashboard() {
                                 <span className="text-base font-black text-slate-400">{p.name.charAt(0)}</span>
                              </div>
                            )}
-                           <div>
+                           <div className="flex-1 min-w-0">
                              <p className="font-bold text-base text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors break-words">{p.name}</p>
                              <div className="flex items-center gap-2 mt-0.5">
                                 <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 rounded uppercase tracking-widest">{p.position}</span>
@@ -214,7 +214,7 @@ export default function ManagerDashboard() {
                                 <span className="text-base font-black text-slate-400">{p.name.charAt(0)}</span>
                              </div>
                            )}
-                           <div>
+                           <div className="flex-1 min-w-0">
                              <p className="font-bold text-base text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-500 transition-colors break-words">{p.name}</p>
                              <div className="flex items-center gap-2 mt-0.5">
                                 <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/40 text-[10px] font-bold text-amber-700 dark:text-amber-500 rounded uppercase tracking-widest">{p.position}</span>

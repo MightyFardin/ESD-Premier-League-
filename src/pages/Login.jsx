@@ -78,13 +78,6 @@ export default function Login() {
         }
       `}</style>
       
-      {/* Premium Colorful Mesh Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-         <div className="absolute top-[5%] left-[15%] w-[40vw] h-[40vw] bg-fuchsia-400/20 dark:bg-fuchsia-600/15 blur-[100px] md:blur-[120px] rounded-full animate-[pulse_10s_ease-in-out_infinite]"></div>
-         <div className="absolute bottom-[5%] right-[15%] w-[45vw] h-[45vw] bg-cyan-400/20 dark:bg-cyan-600/15 blur-[120px] md:blur-[140px] rounded-full animate-[pulse_12s_ease-in-out_infinite_alternate]"></div>
-         <div className="absolute top-[40%] left-[45%] w-[35vw] h-[35vw] bg-violet-400/20 dark:bg-violet-600/15 blur-[100px] md:blur-[120px] rounded-full animate-[pulse_14s_ease-in-out_infinite]"></div>
-      </div>
-      
       {/* Hero Section */}
       <div className="relative z-10 w-full max-w-5xl text-center flex flex-col items-center my-auto">
          
@@ -164,16 +157,24 @@ export default function Login() {
           <div className="relative w-full max-w-[360px] sm:max-w-3xl bg-white dark:bg-[#0a0a0c] rounded-[1.5rem] shadow-2xl shadow-black/20 animate-slide-up border border-slate-100 dark:border-slate-800/60 flex flex-col sm:flex-row overflow-hidden max-h-[90vh] sm:max-h-auto" style={{ animationDuration: '0.4s' }}>
             
             {/* Left side art (hidden on mobile) */}
-            <div className="hidden sm:flex sm:w-5/12 bg-indigo-900 relative items-center justify-center p-8 overflow-hidden shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-fuchsia-700 to-indigo-900 opacity-90"></div>
-              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.05)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px]"></div>
+            <div className="hidden sm:flex sm:w-5/12 bg-slate-950 relative items-center justify-center p-8 overflow-hidden shrink-0 border-r border-slate-100 dark:border-slate-800/60">
+              <div className="absolute inset-0 opacity-[0.03] dark:opacity-10 bg-[radial-gradient(circle_at_center,rgba(0,0,0,1)_1px,transparent_1px)] dark:bg-[radial-gradient(circle_at_center,rgba(255,255,255,1)_1px,transparent_1px)] bg-[length:12px_12px]"></div>
               
-              <div className="relative z-10 text-center">
-                <div className="w-12 h-12 bg-white/10 rounded-xl backdrop-blur-md flex items-center justify-center mx-auto mb-4 border border-white/20">
-                   <span className="text-2xl">🏆</span>
+              <div className="relative z-10 flex flex-col items-start text-left w-full pl-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-white/5 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 shadow-sm">
+                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                   <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">System Online</span>
                 </div>
-                <h3 className="text-2xl font-black text-white tracking-tighter mb-2 leading-tight">Command<br/>Your Legacy</h3>
-                <p className="text-white/70 font-medium text-[11px] px-4">Secure authentication gateway for authorized personnel.</p>
+                
+                <h3 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter mb-4 leading-[1.1]">
+                  Command<br/>
+                  <span className="text-slate-400 dark:text-slate-500">Your</span><br/>
+                  Legacy.
+                </h3>
+                
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-[11px] leading-relaxed max-w-[90%] border-l-2 border-indigo-500 pl-3">
+                  Secure authentication gateway for authorized franchise personnel.
+                </p>
               </div>
             </div>
 

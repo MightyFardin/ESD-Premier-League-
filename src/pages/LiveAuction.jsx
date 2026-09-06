@@ -90,15 +90,16 @@ export default function LiveAuction() {
       return;
     }
     
+    const localEndAt = Date.now() + (liveAuction.timerRemaining * 1000);
     let interval = null;
-    if (liveAuction.status === 'active' && liveAuction.auctionEndAt) {
+    
+    if (liveAuction.status === 'active') {
       interval = setInterval(() => {
         const now = Date.now();
-        const end = liveAuction.auctionEndAt;
-        if (now >= end) {
+        if (now >= localEndAt) {
           setTimeLeft(0);
         } else {
-          setTimeLeft(Math.ceil((end - now) / 1000));
+          setTimeLeft(Math.ceil((localEndAt - now) / 1000));
         }
       }, 100);
     } else {
@@ -253,13 +254,13 @@ export default function LiveAuction() {
                 )}
                 {filteredPlayers.map(p => (
                   <div key={p.id} className="bg-slate-50 dark:bg-[#1a1a1a] p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-row items-center justify-between gap-3">
-                     <div className="flex items-center gap-3 overflow-hidden">
+                     <div className="flex items-center gap-3 flex-1 min-w-0">
                        {p.pic ? (
                           <img src={p.pic} alt={p.name} className="w-10 h-10 rounded-full object-cover shadow-sm shrink-0" referrerPolicy="no-referrer" onError={(e) => { e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=' + p.name + '&background=random'; }} />
                        ) : (
                           <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-500 shrink-0">{p.name.charAt(0)}</div>
                        )}
-                       <div className="overflow-hidden">
+                       <div className="flex-1 min-w-0">
                          <p className="font-bold text-xs sm:text-sm truncate text-slate-900 dark:text-white leading-tight">{p.name}</p>
                          <p className="text-[10px] text-slate-500 truncate mt-0.5">{p.position} • {getSessionStr(p.studentId)}</p>
                          {p.status === 'sold' && (
