@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
 import CustomSelect from '../components/CustomSelect';
+import Countdown from '../components/Countdown';
 
 const getSessionStr = (studentId) => {
   if (!studentId || studentId.length < 2) return 'Unknown';
@@ -26,6 +27,12 @@ export default function LiveAuction() {
   const { showToast } = useToast();
   const [customBid, setCustomBid] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  
+  // Data for Spectator Overview
+  const topSignings = [...players].filter(p => p.status === 'sold').sort((a, b) => (b.soldPrice || 0) - (a.soldPrice || 0)).slice(0, 10);
+  const selectedTeam = managers.find(m => m.id === selectedTeamId);
+  const teamPlayers = players.filter(p => p.teamId === selectedTeamId);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -198,12 +205,22 @@ export default function LiveAuction() {
       {liveAuction.status === 'idle' || !currentPlayer ? (
         <div className="space-y-6">
           {(!user?.role || user?.role === 'manager' || user?.role === 'spectator') && (
-            <div className="flex flex-col items-center justify-center min-h-[30vh] text-center p-8 card-minimal">
-              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 text-2xl font-black text-slate-300">
-                [A]
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">No Active Auction</h2>
-              <p className="text-slate-500">Wait for the admin to start the next player bidding.</p>
+            <div className="flex flex-col items-center justify-center min-h-[30vh] text-center p-8 card-minimal relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/5 to-fuchsia-900/5 dark:from-indigo-400/5 dark:to-fuchsia-400/5 pointer-events-none"></div>
+              {auctionSettings?.auctionStartDate ? (
+                <div className="relative z-10 w-full animate-pop-in">
+                  <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Auction Commences In</h2>
+                  <Countdown targetDate={auctionSettings.auctionStartDate} />
+                </div>
+              ) : (
+                <div className="relative z-10 animate-pop-in">
+                  <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 mx-auto text-2xl font-black text-slate-300">
+                    <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Awaiting Action</h2>
+                  <p className="text-slate-500">The auction floor is currently idle. Bidding will begin shortly.</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -530,6 +547,100 @@ export default function LiveAuction() {
           </div>
         </div>
           
+        </div>
+      )}
+
+      {/* Spectator Overview (Visible to all) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+        {/* Franchises & Budgets */}
+        <div className="card-minimal p-6 flex flex-col h-[500px]">
+           <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Franchises & Purse</h3>
+           </div>
+           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+              {managers.map(team => {
+                 const playersBought = players.filter(p => p.teamId === team.id).length;
+                 return (
+                   <div key={team.id} onClick={() => setSelectedTeamId(team.id)} className="bg-slate-50 dark:bg-[#151515] hover:bg-indigo-50 dark:hover:bg-indigo-900/10 p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800 transition-colors">
+                      <div>
+                         <p className="font-bold text-slate-900 dark:text-white text-base">{team.teamName || team.name}</p>
+                         <p className="text-xs text-slate-500 font-medium">{playersBought} Players</p>
+                      </div>
+                      <div className="text-right">
+                         <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{team.budget?.toLocaleString()}</p>
+                         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Remaining</p>
+                      </div>
+                   </div>
+                 )
+              })}
+           </div>
+        </div>
+
+        {/* Top Signings */}
+        <div className="card-minimal p-6 flex flex-col h-[500px]">
+           <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-black text-slate-900 dark:text-white">Top Signings</h3>
+           </div>
+           <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+              {topSignings.length === 0 ? (
+                 <p className="text-slate-500 text-sm font-medium">No players sold yet.</p>
+              ) : topSignings.map((p, idx) => (
+                 <div key={p.id} className="bg-slate-50 dark:bg-[#151515] p-3 rounded-2xl flex items-center gap-4">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-500 shrink-0">
+                       {idx + 1}
+                    </div>
+                    {p.pic ? (
+                       <img src={p.pic} alt={p.name} className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-slate-100 dark:ring-slate-800" referrerPolicy="no-referrer" onError={(e) => { e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=' + p.name + '&background=random'; }} />
+                    ) : (
+                       <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-400 shrink-0">{p.name.charAt(0)}</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                       <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</p>
+                       <p className="text-[10px] text-slate-500 truncate">Bought by {managers.find(m => m.id === p.teamId)?.teamName || managers.find(m => m.id === p.teamId)?.name}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                       <p className="font-black text-emerald-600 dark:text-emerald-400">{p.soldPrice?.toLocaleString()}</p>
+                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">PTS</p>
+                    </div>
+                 </div>
+              ))}
+           </div>
+        </div>
+      </div>
+
+      {/* Team Details Modal */}
+      {selectedTeamId && selectedTeam && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedTeamId(null)}></div>
+          <div className="relative bg-white dark:bg-[#111] w-full max-w-lg rounded-[2rem] shadow-2xl p-6 md:p-8 animate-slide-up overflow-hidden max-h-[85vh] flex flex-col">
+             <button onClick={() => setSelectedTeamId(null)} className="absolute top-4 right-4 md:top-6 md:right-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+             </button>
+             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 pr-8">{selectedTeam.teamName || selectedTeam.name}</h2>
+             <p className="text-sm font-bold text-slate-500 mb-6">Remaining Budget: <span className="text-indigo-600 dark:text-indigo-400">{selectedTeam.budget?.toLocaleString()} pts</span></p>
+             
+             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+                {teamPlayers.length === 0 ? (
+                   <p className="text-slate-500 text-sm font-medium">No players signed yet.</p>
+                ) : teamPlayers.map(p => (
+                   <div key={p.id} className="bg-slate-50 dark:bg-[#1a1a1a] p-3 rounded-xl flex items-center gap-3">
+                      {p.pic ? (
+                         <img src={p.pic} alt={p.name} className="w-10 h-10 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" onError={(e) => { e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=' + p.name + '&background=random'; }} />
+                      ) : (
+                         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-400 shrink-0">{p.name.charAt(0)}</div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                         <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</p>
+                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">{p.position}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                         <p className="font-black text-slate-700 dark:text-slate-300">{p.soldPrice?.toLocaleString()}</p>
+                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">PTS</p>
+                      </div>
+                   </div>
+                ))}
+             </div>
+          </div>
         </div>
       )}
 

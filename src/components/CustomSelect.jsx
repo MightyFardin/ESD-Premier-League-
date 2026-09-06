@@ -24,7 +24,7 @@ export default function CustomSelect({ name, options, value, onChange, placehold
         className={`input-field flex items-center justify-between cursor-pointer ${isOpen ? 'ring-2 ring-indigo-500 border-transparent dark:ring-indigo-500' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={value ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-400'}>
+        <span className={`truncate flex-1 min-w-0 pr-2 ${value ? 'text-slate-900 dark:text-white font-medium' : 'text-slate-400'}`}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <div className={`transition-transform duration-200 text-xs text-slate-400 ${isOpen ? 'rotate-180' : ''}`}>▼</div>
