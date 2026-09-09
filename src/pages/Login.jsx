@@ -139,7 +139,7 @@ export default function Login() {
       <div className="relative z-10 w-full max-w-5xl text-center flex flex-col items-center my-auto">
          
          <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded border border-slate-300 dark:border-white/20 bg-slate-100/50 dark:bg-white/5 animate-slide-up" style={{ animationDelay: '100ms' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Live Transfer Window</span>
          </div>
          
