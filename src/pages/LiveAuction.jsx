@@ -372,26 +372,28 @@ export default function LiveAuction() {
               <div key={currentPlayer.id} className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col items-center justify-center shadow-sm min-h-[400px]">
                 
                 {revealStage === 'position' && (
-                   <div className="text-center animate-pop-in">
-                     <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Player Position</h2>
-                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">
+                   <div className="flex flex-col items-center overflow-hidden py-4 px-8 w-full max-w-md">
+                     <h2 className="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2 animate-slide-in-left w-full text-center">Player Position</h2>
+                     <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent my-2 animate-slide-in-left" style={{ animationDelay: '100ms' }}></div>
+                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] animate-slide-in-right w-full text-center mt-2 break-words max-w-full px-4">
                        {getPositionStr(currentPlayer.position)}
                      </h1>
                    </div>
                 )}
                 
                 {revealStage === 'session' && (
-                   <div className="text-center animate-pop-in">
-                     <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Player Session</h2>
-                     <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] leading-tight">
+                   <div className="flex flex-col items-center overflow-hidden py-4 px-8 w-full max-w-md">
+                     <h2 className="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2 animate-slide-in-left w-full text-center">Player Session</h2>
+                     <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent my-2 animate-slide-in-left" style={{ animationDelay: '100ms' }}></div>
+                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] leading-tight animate-slide-in-right w-full text-center mt-2 break-words max-w-full px-4">
                        {getSessionStr(currentPlayer.studentId)}
                      </h1>
                    </div>
                 )}
                 
                 {(revealStage === 'full' || revealStage === 'ready') && (
-                  <div className="w-full flex flex-col items-center justify-center animate-pop-in">
-                    <div className="w-40 h-40 md:w-56 md:h-56 mb-8 rounded-full overflow-hidden border-4 border-slate-100 dark:border-slate-800 shadow-md">
+                  <div className="w-full flex flex-col items-center justify-center overflow-hidden py-2">
+                    <div className="w-40 h-40 md:w-56 md:h-56 mb-8 rounded-full overflow-hidden border-4 border-slate-100 dark:border-slate-800 shadow-md animate-slide-in-top">
                         {currentPlayer.pic ? (
                           <img src={currentPlayer.pic} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=' + currentPlayer.name + '&background=random'; }} />
                         ) : (
@@ -401,16 +403,16 @@ export default function LiveAuction() {
                         )}
                     </div>
                     
-                    <h1 className="text-3xl md:text-4xl font-black mb-3 text-slate-900 dark:text-white text-center leading-tight tracking-tight">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-black mb-3 text-slate-900 dark:text-white text-center leading-tight tracking-tight animate-slide-in-right w-full break-words px-2 max-w-full" style={{ animationDelay: '100ms' }}>
                       {currentPlayer.name}
                     </h1>
                     
-                    <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
+                    <div className="flex flex-wrap items-center justify-center gap-2 mb-6 animate-slide-in-left" style={{ animationDelay: '200ms' }}>
                        <span className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-widest">{getPositionStr(currentPlayer.position)}</span>
                        <span className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-widest">{getSessionStr(currentPlayer.studentId)}</span>
                     </div>
                     
-                    <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 px-6 py-2.5 rounded-xl">
+                    <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 px-6 py-2.5 rounded-xl animate-slide-in-bottom" style={{ animationDelay: '300ms' }}>
                        <p className="text-xs text-slate-900 dark:text-white font-bold uppercase tracking-[0.1em]">
                           Base Price: <span className="text-indigo-700 dark:text-indigo-300 text-lg ml-1">{auctionSettings?.defaultBasePrice || 100}</span> pts
                        </p>
