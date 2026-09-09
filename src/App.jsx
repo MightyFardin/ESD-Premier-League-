@@ -142,7 +142,6 @@ const DashboardLayout = ({ children }) => {
                 key={item.path}
                 onClick={(e) => {
                   e.preventDefault();
-                  setIsMobileMenuOpen(false);
                   const wasFullscreen = !!document.fullscreenElement;
                   if (wasFullscreen && document.documentElement.requestFullscreen) {
                      document.documentElement.requestFullscreen().catch(() => {});
