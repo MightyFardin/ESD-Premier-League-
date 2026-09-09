@@ -86,7 +86,7 @@ export default function AdminSettings() {
 
   return (
     <div className="max-w-5xl mx-auto pb-32">
-      <div className="sticky top-0 z-50 bg-slate-50/80 dark:bg-[#0a0a0c]/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 -mx-4 md:-mx-10 px-4 md:px-10">
+      <div className="sticky top-0 z-50 bg-slate-50/80 dark:bg-[#0a0a0c]/80  border-b border-slate-200 dark:border-slate-800 p-4 md:p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 -mx-4 md:-mx-10 px-4 md:px-10">
         <div>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
             <svg className="w-6 h-6 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -177,7 +177,7 @@ export default function AdminSettings() {
                   />
                   <button 
                     onClick={handleStartAuctionNow} 
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition-colors shadow-lg shadow-indigo-600/20 active:scale-95 whitespace-nowrap"
+                    className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 text-xs font-bold px-5 py-3 rounded-xl transition-colors shadow-sm active:scale-95 whitespace-nowrap"
                   >
                     Start Auction Now
                   </button>
@@ -190,7 +190,7 @@ export default function AdminSettings() {
           {/* General Section */}
           <section id="general" className="scroll-mt-40">
             <h2 className="text-xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <span className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
               </span>
               General Settings
@@ -246,7 +246,7 @@ export default function AdminSettings() {
               </span>
               Auction Engine
             </h2>
-            <div className="card-minimal p-6 md:p-8 space-y-8 shadow-sm border border-orange-100 dark:border-orange-900/30 bg-gradient-to-br from-white to-orange-50/30 dark:from-[#111] dark:to-[#1a1310]">
+            <div className="card-minimal p-6 md:p-8 space-y-8 shadow-sm border border-orange-100 dark:border-orange-900/30 bg-white dark:bg-[#111]">
               <div className="max-w-md space-y-3">
                 <label className="block text-[11px] font-black text-orange-600 dark:text-orange-500 uppercase tracking-widest">Countdown Duration</label>
                 <div className="relative">
@@ -330,7 +330,7 @@ export default function AdminSettings() {
 
           {/* Danger Zone */}
           <section id="danger" className="scroll-mt-40 pt-8">
-            <div className="card-minimal border-red-500/20 border-2 overflow-hidden bg-gradient-to-br from-red-50/50 to-white dark:from-[#1a0f0f] dark:to-[#111]">
+            <div className="card-minimal border-red-500/20 border-2 overflow-hidden bg-white dark:bg-[#111]">
               <div className="p-6 md:p-8">
                 <h2 className="text-xl font-black text-red-600 dark:text-red-500 flex items-center gap-2 mb-2">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>

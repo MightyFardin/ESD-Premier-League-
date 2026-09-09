@@ -30,7 +30,7 @@ export default function GlobalNotice() {
 
   return (
     <div className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-[9999] w-[calc(100vw-32px)] md:w-96 animate-slide-up pointer-events-auto">
-      <div className="bg-white/95 dark:bg-[#111]/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[1.5rem] p-5 relative overflow-hidden group hover:shadow-[0_25px_60px_rgba(0,0,0,0.3)] transition-all">
+      <div className="bg-white/95 dark:bg-[#111]/95  border border-slate-200/50 dark:border-slate-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.2)] rounded-[1.5rem] p-5 relative overflow-hidden group hover:shadow-[0_25px_60px_rgba(0,0,0,0.3)] transition-all">
         {/* Decorative background glow */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-cyan-400/20 blur-3xl rounded-full pointer-events-none"></div>
         

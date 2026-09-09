@@ -85,7 +85,6 @@ export default function AdminDashboard() {
       setIsUploading(false);
     }
   };
-
   const savePlayer = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -422,10 +421,12 @@ export default function AdminDashboard() {
     socket?.emit('editManager', {
       ...editingManager,
       teamName: formData.get('teamName'),
+      teamLogo: uploadedPicUrl || editingManager.teamLogo || '',
       budget: parseInt(formData.get('budget'))
     });
     showToast('Manager updated successfully!', 'success');
     setEditingManager(null);
+    setUploadedPicUrl('');
   };
 
   return (
@@ -434,7 +435,7 @@ export default function AdminDashboard() {
       {/* App-like Header / Live Auction Control */}
       <div className={`${liveAuction.status === 'active' ? 'fixed bottom-4 left-4 right-4 lg:static z-[100] shadow-2xl' : 'static'}`}>
         {liveAuction.status === 'active' ? (
-          <div className="bg-red-50 dark:bg-red-950/80 backdrop-blur-xl border border-red-200 dark:border-red-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+          <div className="bg-red-50 dark:bg-red-950/80  border border-red-200 dark:border-red-800 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
               <div>
@@ -458,7 +459,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 gap-3">
          <div className="bg-white dark:bg-[#111] rounded-2xl p-3 border border-slate-200 dark:border-slate-800">
             <p className="text-[10px] font-bold text-slate-500 uppercase mb-0.5">Total Spent</p>
-            <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">
+            <p className="text-lg font-black text-slate-900 dark:text-white">
                {players.filter(p => p.status === 'sold').reduce((sum, p) => sum + (p.soldPrice || 0), 0).toLocaleString()} <span className="text-[10px]">pts</span>
             </p>
          </div>
@@ -476,12 +477,12 @@ export default function AdminDashboard() {
          <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
             {players.filter(p => p.status === 'sold').sort((a, b) => b.soldPrice - a.soldPrice).slice(0, 5).map(p => (
                <div key={p.id} onClick={() => setSelectedBidHistoryPlayer(p)} className="flex-shrink-0 w-32 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 p-2 rounded-xl flex items-center gap-2 cursor-pointer active:bg-slate-100 dark:active:bg-slate-800 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center flex-shrink-0 text-xs overflow-hidden">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white font-bold flex items-center justify-center flex-shrink-0 text-xs overflow-hidden">
                      {p.pic ? <img src={p.pic} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=' + p.name + '&background=random'; }} /> : p.name.charAt(0)}
                   </div>
                   <div className="overflow-hidden">
                      <p className="font-bold text-[10px] truncate text-slate-900 dark:text-white">{p.name}</p>
-                     <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 truncate">{p.soldPrice} pts</p>
+                     <p className="text-[10px] font-black text-slate-900 dark:text-white truncate">{p.soldPrice} pts</p>
                   </div>
                </div>
             ))}
@@ -495,13 +496,13 @@ export default function AdminDashboard() {
       <div className="flex bg-slate-200 dark:bg-[#161618] p-1 rounded-xl">
         <button 
           onClick={() => setActiveTab('players')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'players' ? 'bg-white dark:bg-[#111] text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'players' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
         >
           Players ({players.length})
         </button>
         <button 
           onClick={() => setActiveTab('teams')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'teams' ? 'bg-white dark:bg-[#111] text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'teams' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
         >
           Teams ({managers.length})
         </button>
@@ -516,7 +517,7 @@ export default function AdminDashboard() {
             {!isAddingPlayer && !editingPlayer && (
               <div className="flex flex-wrap items-center justify-between gap-2 mb-4 bg-slate-50 dark:bg-[#161618] p-2 rounded-xl border border-slate-100 dark:border-slate-800">
                 <div className="flex gap-2 w-full sm:w-auto">
-                  <button onClick={() => { setIsAddingPlayer(true); setEditingPlayer({}); setUploadedPicUrl(''); setSelectedPosition(''); }} className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider transition-colors shadow-sm">
+                  <button onClick={() => { setIsAddingPlayer(true); setEditingPlayer({}); setUploadedPicUrl(''); setSelectedPosition(''); }} className="flex-1 sm:flex-none px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-colors shadow-sm">
                     + Add
                   </button>
                   <label className="flex-1 sm:flex-none px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-colors cursor-pointer text-center">
@@ -588,7 +589,7 @@ export default function AdminDashboard() {
             )}
 
             {(isAddingPlayer || editingPlayer) && (
-              <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[1000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                 <form onSubmit={savePlayer} className="w-full max-w-sm p-5 bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4 shadow-2xl relative">
                   <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
                     <h3 className="font-black text-sm uppercase tracking-widest text-slate-500">{isAddingPlayer ? 'Add New Player' : 'Edit Player'}</h3>
@@ -621,7 +622,7 @@ export default function AdminDashboard() {
 
                   <div className="flex gap-2 pt-2">
                     <button type="button" onClick={() => { setEditingPlayer(null); setIsAddingPlayer(false); }} className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Cancel</button>
-                    <button type="submit" className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-colors" disabled={isUploading}>Save Player</button>
+                    <button type="submit" className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-sm hover:bg-indigo-700 transition-colors" disabled={isUploading}>Save Player</button>
                   </div>
                 </form>
               </div>
@@ -639,7 +640,7 @@ export default function AdminDashboard() {
                       <p className="font-bold text-xs text-slate-900 dark:text-white leading-tight">{p.name}</p>
                       <p className="text-[10px] text-slate-500 mt-0.5">{p.position} • Base: {auctionSettings?.defaultBasePrice || 100}</p>
                       {p.status === 'sold' && (
-                        <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-0.5">Sold: {p.soldPrice} pts</p>
+                        <p className="text-[10px] text-slate-900 dark:text-white font-bold mt-0.5">Sold: {p.soldPrice} pts</p>
                       )}
                     </div>
                   </div>
@@ -667,6 +668,15 @@ export default function AdminDashboard() {
               <form onSubmit={saveManager} className="mb-4 p-4 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
                 <p className="font-bold text-sm">{editingManager.name}</p>
                 <input name="teamName" type="text" defaultValue={editingManager.teamName || ''} placeholder="Team Name" className="w-full bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 outline-none" />
+                <div className="bg-slate-50 dark:bg-[#161618] p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                  <label className={`flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer font-black tracking-widest uppercase text-[10px] ${isUploading ? 'opacity-50' : 'hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors'}`}>
+                    {isUploading ? 'UPLOADING...' : 'UPLOAD LOGO'}
+                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={isUploading} className="hidden" />
+                  </label>
+                  {(uploadedPicUrl || editingManager?.teamLogo) && (
+                    <img src={uploadedPicUrl || editingManager?.teamLogo} alt="Logo" className="w-10 h-10 rounded-full object-cover shrink-0 border-2 border-indigo-500" />
+                  )}
+                </div>
                 <input name="budget" type="number" defaultValue={editingManager.budget} required className="w-full bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 outline-none" />
                 <div className="flex gap-2">
                   <button type="button" onClick={() => setEditingManager(null)} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-2.5 rounded-lg font-bold text-sm">Cancel</button>
@@ -679,12 +689,17 @@ export default function AdminDashboard() {
               {managers.length === 0 && <p className="text-xs text-slate-400 text-center py-4">No teams found.</p>}
               {managers.map(m => (
                 <div key={m.id} className="p-3 bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
-                  <div className="truncate">
-                    <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{m.teamName || m.name}</p>
-                    <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{typeof m.budget === 'number' ? m.budget.toLocaleString() : '0'} pts remaining</p>
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden font-bold text-slate-500">
+                      {m.teamLogo ? <img src={m.teamLogo} alt="" className="w-full h-full object-cover" /> : (m.teamName ? m.teamName.charAt(0).toUpperCase() : 'T')}
+                    </div>
+                    <div className="truncate">
+                      <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{m.teamName || m.name}</p>
+                      <p className="text-[10px] font-bold text-slate-900 dark:text-white">{typeof m.budget === 'number' ? m.budget.toLocaleString() : '0'} pts remaining</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => setEditingManager(m)} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 dark:bg-slate-800 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">EDIT</button>
+                    <button onClick={() => { setEditingManager(m); setUploadedPicUrl(m.teamLogo || ''); }} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 dark:bg-slate-800 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">EDIT</button>
                     <button onClick={() => {
                       if(window.confirm(`Are you sure you want to delete ${m.teamName || m.name}? This will unassign any players they have bought.`)) {
                         socket.emit('deleteManager', m.id);
@@ -700,12 +715,12 @@ export default function AdminDashboard() {
 
       {/* Bid History Modal */}
       {selectedBidHistoryPlayer && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[300] flex items-center justify-center p-4 bg-black/60">
           <div className="bg-white dark:bg-[#111] p-5 rounded-2xl w-full max-w-sm border border-slate-200 dark:border-slate-800 max-h-[80vh] flex flex-col">
              <div className="flex justify-between items-center mb-4 shrink-0">
                 <div>
                   <h3 className="font-black text-base text-slate-900 dark:text-white">Bid History</h3>
-                  <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{selectedBidHistoryPlayer.name}</p>
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white">{selectedBidHistoryPlayer.name}</p>
                 </div>
                 <button onClick={() => setSelectedBidHistoryPlayer(null)} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-full">CLOSE</button>
              </div>
@@ -722,7 +737,7 @@ export default function AdminDashboard() {
                                <p className="font-bold text-xs text-slate-900 dark:text-white">{manager?.teamName || manager?.name || 'Unknown'}</p>
                                <p className="text-[9px] text-slate-500">{new Date(bid.timestamp).toLocaleTimeString()}</p>
                             </div>
-                            <p className="font-black text-sm text-indigo-600 dark:text-indigo-400">{bid.amount}</p>
+                            <p className="font-black text-sm text-slate-900 dark:text-white">{bid.amount}</p>
                          </div>
                       );
                    })
@@ -734,7 +749,7 @@ export default function AdminDashboard() {
 
       {/* Delete Confirmation Modal */}
       {deletingPlayer && (
-        <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4 bg-black/60">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[300] flex items-end sm:items-center justify-center p-4 bg-black/60">
           <div className="bg-white dark:bg-[#111] p-5 rounded-t-2xl sm:rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30">
              <h3 className="font-black text-lg mb-1 text-slate-900 dark:text-white">Delete Player</h3>
              <p className="text-xs font-bold text-slate-500 mb-6">Are you sure you want to delete <span className="text-red-500">{deletingPlayer.name}</span>?</p>
@@ -752,7 +767,7 @@ export default function AdminDashboard() {
 
       {/* Delete All Confirmation Modal */}
       {confirmDeleteAll && (
-        <div className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[400] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-5 rounded-t-2xl sm:rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30 shadow-2xl">
              <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-3 text-2xl font-black">
                !
@@ -775,7 +790,7 @@ export default function AdminDashboard() {
                 <button 
                   onClick={deleteAllPlayers} 
                   disabled={deleteConfirmText.toLowerCase() !== 'delete all'}
-                  className="flex-1 py-3 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-500/30 disabled:opacity-50 disabled:grayscale"
+                  className="flex-1 py-3 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:grayscale"
                 >Confirm Delete</button>
              </div>
           </div>
@@ -784,7 +799,7 @@ export default function AdminDashboard() {
 
       {/* Stop Auction Confirmation Modal */}
       {confirmStopAuction && (
-        <div className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-4 bg-black/60">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[400] flex items-end sm:items-center justify-center p-4 bg-black/60">
           <div className="bg-white dark:bg-[#111] p-5 rounded-t-2xl sm:rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30 shadow-2xl">
              <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-3 text-2xl font-black">
                !
@@ -801,7 +816,7 @@ export default function AdminDashboard() {
                     handleStopAuction();
                     setConfirmStopAuction(false);
                   }} 
-                  className="flex-1 py-3.5 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-lg shadow-red-500/30"
+                  className="flex-1 py-3.5 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-sm"
                 >Confirm & Sell</button>
              </div>
           </div>

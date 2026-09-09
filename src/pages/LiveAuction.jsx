@@ -206,10 +206,10 @@ export default function LiveAuction() {
         <div className="space-y-6">
           {(!user?.role || user?.role === 'manager' || user?.role === 'spectator') && (
             <div className="flex flex-col items-center justify-center min-h-[30vh] text-center p-8 card-minimal relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/5 to-fuchsia-900/5 dark:from-indigo-400/5 dark:to-fuchsia-400/5 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-slate-100 dark:bg-[#161616] pointer-events-none"></div>
               {auctionSettings?.auctionStartDate ? (
                 <div className="relative z-10 w-full animate-pop-in">
-                  <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Auction Commences In</h2>
+                  <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-widest text-slate-900 dark:text-white">Auction Commences In</h2>
                   <Countdown targetDate={auctionSettings.auctionStartDate} />
                 </div>
               ) : (
@@ -230,9 +230,9 @@ export default function LiveAuction() {
                 <div className="flex flex-col gap-2">
                   <h2 className="text-xl font-bold">Player Queue</h2>
                   <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg self-start">
-                     <button onClick={() => setViewTab('unsold')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${viewTab === 'unsold' ? 'bg-white dark:bg-[#222] shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Unsold ({players.filter(p => p.status === 'unsold').length})</button>
-                     <button onClick={() => setViewTab('sold')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${viewTab === 'sold' ? 'bg-white dark:bg-[#222] shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Sold ({players.filter(p => p.status === 'sold').length})</button>
-                     <button onClick={() => setViewTab('all')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${viewTab === 'all' ? 'bg-white dark:bg-[#222] shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>All ({players.length})</button>
+                     <button onClick={() => setViewTab('unsold')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${viewTab === 'unsold' ? 'bg-white dark:bg-[#222] shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Unsold ({players.filter(p => p.status === 'unsold').length})</button>
+                     <button onClick={() => setViewTab('sold')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${viewTab === 'sold' ? 'bg-white dark:bg-[#222] shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>Sold ({players.filter(p => p.status === 'sold').length})</button>
+                     <button onClick={() => setViewTab('all')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${viewTab === 'all' ? 'bg-white dark:bg-[#222] shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>All ({players.length})</button>
                   </div>
                 </div>
                 
@@ -281,7 +281,7 @@ export default function LiveAuction() {
                          <p className="font-bold text-xs sm:text-sm truncate text-slate-900 dark:text-white leading-tight">{p.name}</p>
                          <p className="text-[10px] text-slate-500 truncate mt-0.5">{p.position} • {getSessionStr(p.studentId)}</p>
                          {p.status === 'sold' && (
-                            <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 truncate">
+                            <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-0.5 truncate">
                                Sold to {managers.find(m => m.id === p.teamId)?.name || 'Unknown'}
                             </p>
                          )}
@@ -292,7 +292,7 @@ export default function LiveAuction() {
                      </div>
                      <div className="shrink-0 flex items-center gap-1.5 pl-2">
                        {p.status === 'unsold' && (
-                         <button onClick={() => handleStartAuction(p.id)} className="w-9 h-9 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center active:scale-95 transition-transform shadow-md shadow-indigo-600/20" title="Start Auction">
+                         <button onClick={() => handleStartAuction(p.id)} className="w-9 h-9 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 flex items-center justify-center active:scale-95 transition-transform shadow-md shadow-indigo-600/20" title="Start Auction">
                            <svg className="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                          </button>
                        )}
@@ -411,7 +411,7 @@ export default function LiveAuction() {
                     </div>
                     
                     <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 px-6 py-2.5 rounded-xl">
-                       <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-[0.1em]">
+                       <p className="text-xs text-slate-900 dark:text-white font-bold uppercase tracking-[0.1em]">
                           Base Price: <span className="text-indigo-700 dark:text-indigo-300 text-lg ml-1">{auctionSettings?.defaultBasePrice || 100}</span> pts
                        </p>
                     </div>
@@ -429,9 +429,12 @@ export default function LiveAuction() {
                     {liveAuction.currentBid?.toLocaleString()} <span className="text-2xl text-slate-400">pts</span>
                   </h2>
                   {highestBidder ? (
-                    <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-[#1a1a1a] text-slate-700 dark:text-slate-300 px-5 py-2 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <div className="inline-flex items-center gap-3 bg-slate-50 dark:bg-[#1a1a1a] text-slate-700 dark:text-slate-300 px-5 py-2 rounded-lg border border-slate-200 dark:border-slate-800">
                       <span className="font-bold text-sm">Bid by</span>
-                      <span className="font-black text-sm uppercase tracking-wider">{highestBidder.teamName || highestBidder.name}</span>
+                      <div className="flex items-center gap-2">
+                        {highestBidder.teamLogo && <img src={highestBidder.teamLogo} alt="" className="w-6 h-6 object-cover rounded-full" />}
+                        <span className="font-black text-sm uppercase tracking-wider">{highestBidder.teamName || highestBidder.name}</span>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm font-bold text-slate-400 bg-slate-50 dark:bg-[#1a1a1a] inline-block px-5 py-2 rounded-lg border border-slate-100 dark:border-slate-800">Waiting for bids...</p>
@@ -443,7 +446,7 @@ export default function LiveAuction() {
                     <button 
                       onClick={() => handleBid(null)}
                       disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam.id}
-                      className="w-full py-4 md:py-5 text-xl font-black rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                      className="w-full py-4 md:py-5 text-xl font-black rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                     >
                       {liveAuction.highestBidderId === myTeam.id ? 'YOU ARE HIGHEST' : isFirstBid ? `BID BASE (${liveAuction.currentBid})` : `BID +${currentIncrement}`}
                     </button>
@@ -499,12 +502,15 @@ export default function LiveAuction() {
                         const stats = getTeamStats(m.id);
                         return (
                           <div key={m.id} className="flex justify-between items-center p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#1a1a1a]">
-                             <div className="overflow-hidden pr-2">
-                                <p className="font-bold text-xs md:text-sm truncate text-slate-800 dark:text-slate-200">{m.teamName || m.name}</p>
-                                <p className="text-[10px] text-slate-500 font-medium mt-0.5">{stats.players} players bought</p>
+                             <div className="flex items-center gap-3 overflow-hidden pr-2">
+                                {m.teamLogo && <img src={m.teamLogo} alt="" className="w-8 h-8 rounded-full object-cover shrink-0"/>}
+                                <div className="overflow-hidden">
+                                  <p className="font-bold text-xs md:text-sm truncate text-slate-800 dark:text-slate-200">{m.teamName || m.name}</p>
+                                  <p className="text-[10px] text-slate-500 font-medium mt-0.5">{stats.players} players bought</p>
+                                </div>
                              </div>
                              <div className="text-right whitespace-nowrap">
-                                <p className="font-black text-indigo-600 dark:text-indigo-400 text-sm md:text-base">{stats.remaining.toLocaleString()} <span className="text-[10px] opacity-60">pts</span></p>
+                                <p className="font-black text-slate-900 dark:text-white text-sm md:text-base">{stats.remaining.toLocaleString()} <span className="text-[10px] opacity-60">pts</span></p>
                              </div>
                           </div>
                         )
@@ -536,7 +542,7 @@ export default function LiveAuction() {
                               <p className={`font-bold ${i === 0 ? 'text-indigo-700 dark:text-indigo-400 text-lg' : 'text-slate-700 dark:text-slate-300'}`}>{bid.managerName}</p>
                               <p className="text-xs text-slate-400 font-medium">{new Date(bid.time).toLocaleTimeString()}</p>
                             </div>
-                            <p className={`font-black ${i === 0 ? 'text-indigo-600 dark:text-indigo-400 text-lg' : 'text-slate-600 dark:text-slate-500 text-base'}`}>
+                            <p className={`font-black ${i === 0 ? 'text-slate-900 dark:text-white text-lg' : 'text-slate-600 dark:text-slate-500 text-base'}`}>
                               {bid.amount.toLocaleString()} <span className="text-[10px] font-bold text-slate-400">pts</span>
                             </p>
                          </div>
@@ -562,12 +568,15 @@ export default function LiveAuction() {
                  const playersBought = players.filter(p => p.teamId === team.id).length;
                  return (
                    <div key={team.id} onClick={() => setSelectedTeamId(team.id)} className="bg-slate-50 dark:bg-[#151515] hover:bg-indigo-50 dark:hover:bg-indigo-900/10 p-4 rounded-2xl flex items-center justify-between cursor-pointer border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800 transition-colors">
-                      <div>
-                         <p className="font-bold text-slate-900 dark:text-white text-base">{team.teamName || team.name}</p>
-                         <p className="text-xs text-slate-500 font-medium">{playersBought} Players</p>
+                      <div className="flex items-center gap-3">
+                         {team.teamLogo && <img src={team.teamLogo} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />}
+                         <div>
+                           <p className="font-bold text-slate-900 dark:text-white text-base">{team.teamName || team.name}</p>
+                           <p className="text-xs text-slate-500 font-medium">{playersBought} Players</p>
+                         </div>
                       </div>
                       <div className="text-right">
-                         <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{team.budget?.toLocaleString()}</p>
+                         <p className="text-lg font-black text-slate-900 dark:text-white">{team.budget?.toLocaleString()}</p>
                          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Remaining</p>
                       </div>
                    </div>
@@ -610,14 +619,17 @@ export default function LiveAuction() {
 
       {/* Team Details Modal */}
       {selectedTeamId && selectedTeam && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedTeamId(null)}></div>
           <div className="relative bg-white dark:bg-[#111] w-full max-w-lg rounded-[2rem] shadow-2xl p-6 md:p-8 animate-slide-up overflow-hidden max-h-[85vh] flex flex-col">
              <button onClick={() => setSelectedTeamId(null)} className="absolute top-4 right-4 md:top-6 md:right-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 transition-colors">
                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
              </button>
-             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 pr-8">{selectedTeam.teamName || selectedTeam.name}</h2>
-             <p className="text-sm font-bold text-slate-500 mb-6">Remaining Budget: <span className="text-indigo-600 dark:text-indigo-400">{selectedTeam.budget?.toLocaleString()} pts</span></p>
+             <div className="flex items-center gap-3 mb-1 pr-8">
+               {selectedTeam.teamLogo && <img src={selectedTeam.teamLogo} alt="" className="w-8 h-8 rounded-full object-cover" />}
+               <h2 className="text-2xl font-black text-slate-900 dark:text-white">{selectedTeam.teamName || selectedTeam.name}</h2>
+             </div>
+             <p className="text-sm font-bold text-slate-500 mb-6">Remaining Budget: <span className="text-slate-900 dark:text-white">{selectedTeam.budget?.toLocaleString()} pts</span></p>
              
              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
                 {teamPlayers.length === 0 ? (
@@ -646,7 +658,7 @@ export default function LiveAuction() {
 
       {/* Confirmation Modal */}
       {confirmAction && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center">
              <div className="w-16 h-16 mx-auto bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-3xl font-black text-slate-400">
                 ?
@@ -679,7 +691,7 @@ export default function LiveAuction() {
 
       {/* Undo Sale Confirmation Modal */}
       {confirmUndoPlayer && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center border border-red-200 dark:border-red-900/30">
              <div className="w-16 h-16 mx-auto bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-4 text-3xl font-black">
                 !
@@ -695,7 +707,7 @@ export default function LiveAuction() {
                      socket?.emit('undoSale', confirmUndoPlayer.id);
                      setConfirmUndoPlayer(null);
                   }} 
-                  className="flex-1 py-3 font-bold rounded-xl text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20"
+                  className="flex-1 py-3 font-bold rounded-xl text-white bg-red-500 hover:bg-red-600 shadow-sm"
                 >
                    Confirm
                 </button>

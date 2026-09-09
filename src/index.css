@@ -258,15 +258,15 @@ select.input-field {
 
 /* Glassmorphism Theme Overrides */
 .theme-glass body {
-  @apply bg-gradient-to-br from-indigo-100 via-purple-50 to-emerald-50 dark:from-indigo-950 dark:via-slate-900 dark:to-purple-950;
+  @apply bg-slate-50 dark:bg-[#030303];
   background-attachment: fixed;
 }
 .theme-glass .card-minimal,
 .theme-glass aside,
 .theme-glass header {
-  @apply bg-white/60 dark:bg-black/40 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] !important;
+  @apply bg-white/60 dark:bg-black/40  border border-white/40 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] !important;
 }
 .theme-glass .input-field,
 .theme-glass .btn-secondary {
-  @apply bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/50 dark:border-white/10 !important;
+  @apply bg-white/40 dark:bg-white/10  border border-white/50 dark:border-white/10 !important;
 }

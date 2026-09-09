@@ -29,12 +29,14 @@ async function initDB() {
         budget INTEGER,
         username TEXT,
         password TEXT,
-        "teamName" TEXT
+        "teamName" TEXT,
+        "teamLogo" TEXT
       );
       
       ALTER TABLE managers ADD COLUMN IF NOT EXISTS username TEXT;
       ALTER TABLE managers ADD COLUMN IF NOT EXISTS password TEXT;
       ALTER TABLE managers ADD COLUMN IF NOT EXISTS "teamName" TEXT;
+      ALTER TABLE managers ADD COLUMN IF NOT EXISTS "teamLogo" TEXT;
 
       CREATE TABLE IF NOT EXISTS settings (
         id INTEGER PRIMARY KEY,
@@ -104,15 +106,16 @@ async function deletePlayerDB(id) {
 
 async function saveManager(manager) {
   await pool.query(`
-    INSERT INTO managers (id, name, budget, username, password, "teamName")
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO managers (id, name, budget, username, password, "teamName", "teamLogo")
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     ON CONFLICT (id) DO UPDATE SET
       name = EXCLUDED.name,
       budget = EXCLUDED.budget,
       username = EXCLUDED.username,
       password = EXCLUDED.password,
-      "teamName" = EXCLUDED."teamName"
-  `, [manager.id, manager.name, manager.budget, manager.username, manager.password, manager.teamName]);
+      "teamName" = EXCLUDED."teamName",
+      "teamLogo" = EXCLUDED."teamLogo"
+  `, [manager.id, manager.name, manager.budget, manager.username, manager.password, manager.teamName, manager.teamLogo]);
 }
 
 async function saveSettings(settings) {

@@ -106,10 +106,10 @@ export default function SystemLogs() {
            </div>
            
            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-             <button onClick={() => setViewMode('timeline')} className={`flex items-center gap-2 px-4 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-md transition-colors ${viewMode === 'timeline' ? 'bg-white dark:bg-[#222] shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>
+             <button onClick={() => setViewMode('timeline')} className={`flex items-center gap-2 px-4 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-md transition-colors ${viewMode === 'timeline' ? 'bg-white dark:bg-[#222] shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
                TIMELINE
              </button>
-             <button onClick={() => setViewMode('player')} className={`flex items-center gap-2 px-4 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-md transition-colors ${viewMode === 'player' ? 'bg-white dark:bg-[#222] shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700'}`}>
+             <button onClick={() => setViewMode('player')} className={`flex items-center gap-2 px-4 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-md transition-colors ${viewMode === 'player' ? 'bg-white dark:bg-[#222] shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
                BY PLAYER
              </button>
            </div>
@@ -121,7 +121,7 @@ export default function SystemLogs() {
       </div>
 
       {showClearConfirm && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm border border-slate-200 dark:border-slate-800 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">Clear All Logs?</h3>
             <p className="text-sm text-slate-500 mb-6">This action cannot be undone. All system logs will be permanently deleted from the database.</p>

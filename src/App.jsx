@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useState, Component } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
-import { ToastProvider } from './ToastContext';
+import { ToastProvider, useToast } from './ToastContext';
 import GlobalNotice from './components/GlobalNotice';
 
 class ErrorBoundary extends Component {
@@ -124,7 +124,7 @@ const DashboardLayout = ({ children }) => {
       <aside className="hidden md:flex w-72 bg-white dark:bg-[#0f0f11] border-r border-slate-200 dark:border-slate-800 flex-col shrink-0">
         <div className="h-24 flex items-center px-8 border-b border-slate-200 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
               <span className="text-white font-black text-2xl tracking-tighter">EPL</span>
             </div>
             <div>
@@ -184,7 +184,7 @@ const DashboardLayout = ({ children }) => {
          {/* Mobile Header */}
          <header className="md:hidden h-20 bg-white dark:bg-[#0f0f11] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 shrink-0 z-10">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
                 <span className="text-white font-black text-lg tracking-tighter">EPL</span>
               </div>
               <div>
@@ -215,7 +215,7 @@ const DashboardLayout = ({ children }) => {
          </main>
 
          {/* Mobile Bottom Navigation (Flush with bottom) */}
-         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0a0a0c]/95 backdrop-blur-2xl border-t border-slate-200/50 dark:border-slate-800/50 z-[100] flex items-center justify-around px-2 pb-safe pt-3 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-3xl">
+         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0a0a0c]/95 backdrop-blur-2xl border-t border-slate-200/50 dark:border-slate-800/50 z-[100] flex items-center justify-around px-2 pb-safe pt-3 shadow-sm border-t border-slate-200 dark:border-slate-800 rounded-t-3xl">
            {navItems.map((item) => {
              const isActive = location.pathname === item.path;
              let shortLabel = item.label;
@@ -251,7 +251,7 @@ const DashboardLayout = ({ children }) => {
       
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-6 rounded-3xl w-full max-w-xs border border-slate-200 dark:border-slate-800 shadow-2xl">
              <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white text-center">Confirm Logout</h3>
              <p className="text-sm font-bold text-slate-500 mb-6 text-center">Are you sure you want to sign out?</p>
@@ -272,6 +272,53 @@ const DashboardLayout = ({ children }) => {
   );
 };
 
+const MaximizeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+);
+const MinimizeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+);
+
+const GlobalControls = () => {
+  const { settings, setSettings } = useAuth();
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleTheme = () => {
+    setSettings(prev => ({ ...prev, theme: prev.theme === 'dark' ? 'light' : 'dark' }));
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  return (
+    <div className="fixed bottom-[100px] md:bottom-6 right-4 md:right-6 z-[9999] flex flex-col gap-3">
+      <button onClick={toggleTheme} className="w-10 h-10 md:w-12 md:h-12 bg-white/90 dark:bg-[#1a1a1c]/90  rounded-full shadow-xl shadow-black/10 border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:scale-110 transition-transform hover:text-indigo-600 dark:hover:text-indigo-400">
+        {settings.theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+      </button>
+      <button onClick={toggleFullscreen} className="w-10 h-10 md:w-12 md:h-12 bg-white/90 dark:bg-[#1a1a1c]/90  rounded-full shadow-xl shadow-black/10 border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:scale-110 transition-transform hover:text-indigo-600 dark:hover:text-indigo-400">
+        {isFullscreen ? <MinimizeIcon /> : <MaximizeIcon />}
+      </button>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -280,34 +327,35 @@ export default function App() {
           <Router>
             <div className="flex flex-col h-[100dvh] w-full overflow-hidden">
               <GlobalNotice />
-              <div className="flex-1 relative overflow-hidden flex flex-col">
+              <GlobalControls />
+              <div className="flex-1 min-h-0 flex flex-col">
                 <Routes>
                   <Route path="/" element={
                     <AuthRedirect />
                   } />
 
               <Route path="/admin" element={
-                <ProtectedRoute allowedRole={['admin', 'auctioneer']}>
+                <AdminRoute allowedRole={['admin', 'auctioneer']}>
                   <AdminDashboard />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               
               <Route path="/admin/teams" element={
-                <ProtectedRoute allowedRole={['admin', 'auctioneer']}>
+                <AdminRoute allowedRole={['admin', 'auctioneer']}>
                   <ManagerManagement />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               
               <Route path="/admin/settings" element={
-                <ProtectedRoute allowedRole="admin">
+                <AdminRoute allowedRole="admin">
                   <AdminSettings />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
               
               <Route path="/logs" element={
-                <ProtectedRoute allowedRole={['admin']}>
+                <AdminRoute allowedRole={['admin']}>
                   <SystemLogs />
-                </ProtectedRoute>
+                </AdminRoute>
               } />
 
               <Route path="/manager" element={
@@ -349,7 +397,7 @@ function AuctionRoute() {
     <Suspense fallback={<PageLoader />}>
       <div className="h-full w-full bg-slate-50 dark:bg-[#030303] overflow-y-auto custom-scrollbar flex flex-col relative">
          <div className="px-4 pt-4 pb-2 sticky top-0 z-50 flex items-start bg-gradient-to-b from-slate-50 dark:from-[#030303] to-transparent">
-            <Link to="/" className="inline-flex items-center gap-2 bg-white/80 dark:bg-[#111]/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all hover:-translate-x-1 active:scale-95 group">
+            <Link to="/" className="inline-flex items-center gap-2 bg-white/80 dark:bg-[#111]/80  border border-slate-200/50 dark:border-slate-800/50 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all hover:-translate-x-1 active:scale-95 group">
                <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
             </Link>
@@ -374,6 +422,77 @@ function AuthRedirect() {
   if (!user || user.role === 'spectator') return <Suspense fallback={<PageLoader />}><Login /></Suspense>;
   if (user.role === 'admin' || user.role === 'auctioneer') return <Navigate to="/admin" replace />;
   return <Navigate to="/manager" replace />;
+}
+
+function AdminRoute({ children, allowedRole }) {
+  const { user, login, auctionSettings } = useAuth();
+  const { showToast } = useToast();
+  const [password, setPassword] = React.useState('');
+
+  const roles = Array.isArray(allowedRole) ? allowedRole : [allowedRole];
+  const hasAccess = user && roles.includes(user.role);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === 'admin' && roles.includes('admin')) {
+      login({ id: 'admin-id', name: 'Admin', role: 'admin' });
+    } else if (password === (auctionSettings?.auctioneerPassword || '123') && roles.includes('auctioneer')) {
+      login({ id: 'auctioneer-id', name: 'Auctioneer', role: 'auctioneer' });
+    } else {
+      showToast('Invalid access code', 'error');
+    }
+  };
+
+  if (!hasAccess) {
+    return (
+      <div className="h-[100dvh] w-full bg-slate-50 dark:bg-[#030303] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+         <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-40 dark:opacity-20">
+            <div className="absolute w-[80vw] h-[80vw] border-[1px] border-slate-200 dark:border-white/10 rounded-full"></div>
+            <div className="absolute w-[60vw] h-[60vw] border-[1px] border-slate-200 dark:border-white/10 rounded-full"></div>
+            <div className="absolute w-[40vw] h-[40vw] border-[1px] border-slate-200 dark:border-white/10 rounded-full"></div>
+         </div>
+         <div className="relative z-10 w-full max-w-xs animate-slide-up">
+           <div className="mb-8 text-center">
+             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white mb-4 shadow-sm">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+             </div>
+             <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">System Access</h1>
+             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-2">Restricted Area</p>
+           </div>
+           <form onSubmit={handleLogin} className="space-y-3">
+              <div>
+                <input 
+                  type="password" 
+                  className="w-full bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3.5 text-sm font-bold text-center text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 transition-all tracking-widest placeholder:tracking-normal placeholder:font-medium"
+                  placeholder="Enter passcode"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              <button type="submit" className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl text-sm hover:bg-slate-800 dark:hover:bg-slate-200 active:scale-95 transition-all shadow-sm">
+                Authenticate
+              </button>
+           </form>
+           <div className="mt-8 text-center">
+             <Link to="/" className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-colors flex items-center justify-center gap-1">
+               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+               Return to Home
+             </Link>
+           </div>
+         </div>
+      </div>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <Suspense fallback={<PageLoader />}>
+        {children}
+      </Suspense>
+    </DashboardLayout>
+  );
 }
 
 function ProtectedRoute({ children, allowedRole }) {

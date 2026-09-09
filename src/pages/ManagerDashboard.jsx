@@ -42,8 +42,8 @@ export default function ManagerDashboard() {
     <div className="space-y-4 md:space-y-6 relative">
       
       {auctionSettings?.auctionStartDate && (
-        <div className="mb-6 bg-indigo-900/10 dark:bg-indigo-900/20 rounded-[2rem] p-4 border border-indigo-500/20">
-          <p className="text-center text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-2">Auction Begins In</p>
+        <div className="mb-6 bg-slate-100 dark:bg-[#1a1a1c] rounded-[2rem] p-4 border border-slate-300 dark:border-slate-700">
+          <p className="text-center text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white mb-2">Auction Begins In</p>
           <Countdown targetDate={auctionSettings.auctionStartDate} />
         </div>
       )}
@@ -51,17 +51,19 @@ export default function ManagerDashboard() {
       {/* Compact Header & Stats Section */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
         
-        <div className="col-span-2 bg-gradient-to-br from-indigo-900 to-indigo-950 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-[30px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
-          <p className="text-indigo-300 font-bold tracking-widest uppercase text-[9px] sm:text-[10px] mb-1">Manager Dashboard</p>
-          <h1 className="text-lg sm:text-xl font-black text-white leading-tight truncate">
-             {myTeam.teamName || myTeam.name}
-          </h1>
+        <div className="col-span-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col justify-center relative overflow-hidden">
+          <p className="text-slate-400 dark:text-slate-500 font-bold tracking-widest uppercase text-[9px] sm:text-[10px] mb-1">Manager Dashboard</p>
+          <div className="flex items-center gap-3 relative z-10">
+            {myTeam.teamLogo && <img src={myTeam.teamLogo} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 border-2 border-slate-700 dark:border-slate-200" />}
+            <h1 className="text-lg sm:text-xl font-black text-inherit leading-tight truncate">
+               {myTeam.teamName || myTeam.name}
+            </h1>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-[#111] p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
            <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Budget Left</p>
-           <p className="font-black text-lg sm:text-xl text-indigo-600 dark:text-indigo-400">{myTeam.budget?.toLocaleString() || 0} <span className="text-[10px] sm:text-xs">pts</span></p>
+           <p className="font-black text-lg sm:text-xl text-slate-900 dark:text-white">{myTeam.budget?.toLocaleString() || 0} <span className="text-[10px] sm:text-xs">pts</span></p>
         </div>
 
         <div className="bg-white dark:bg-[#111] p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
@@ -81,7 +83,7 @@ export default function ManagerDashboard() {
 
       {/* Wrapping Tabs */}
       <div className="flex flex-wrap bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl w-full gap-1.5 backdrop-blur-sm">
-         <button onClick={() => setActiveTab('squad')} className={`flex-1 min-w-[70px] px-3 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all text-center ${activeTab === 'squad' ? 'bg-white dark:bg-[#1a1a1c] shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}>
+         <button onClick={() => setActiveTab('squad')} className={`flex-1 min-w-[70px] px-3 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all text-center ${activeTab === 'squad' ? 'bg-white dark:bg-[#1a1a1c] shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}>
             Squad
          </button>
          <button onClick={() => setActiveTab('pool')} className={`flex-1 min-w-[70px] px-3 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all text-center ${activeTab === 'pool' ? 'bg-white dark:bg-[#1a1a1c] shadow-sm text-emerald-600 dark:text-emerald-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}>
@@ -126,7 +128,7 @@ export default function ManagerDashboard() {
                         </div>
                       </div>
                       <div className="text-left sm:text-right pt-2 sm:pt-0 border-t border-slate-100 dark:border-slate-800/80 sm:border-0">
-                        <p className="text-base md:text-lg font-black text-indigo-600 dark:text-indigo-400">{p.soldPrice?.toLocaleString()} <span className="text-[10px] text-slate-400 font-bold ml-0.5">PTS</span></p>
+                        <p className="text-base md:text-lg font-black text-slate-900 dark:text-white">{p.soldPrice?.toLocaleString()} <span className="text-[10px] text-slate-400 font-bold ml-0.5">PTS</span></p>
                         <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Acquired For</p>
                       </div>
                     </div>
@@ -251,10 +253,13 @@ export default function ManagerDashboard() {
                       <div key={m.id} className="bg-white dark:bg-[#161618] rounded-[1.5rem] p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col hover:shadow-md transition-shadow relative overflow-hidden group">
                          {/* Name */}
                          <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div className="overflow-hidden">
-                               <h4 className="font-black text-base sm:text-lg text-slate-900 dark:text-white leading-tight truncate">{m.teamName || 'Unnamed'}</h4>
-                               <p className="text-[9px] sm:text-[10px] uppercase tracking-widest text-slate-500 mt-0.5 truncate">{m.name || 'Unknown'}</p>
-                            </div>
+                             <div className="flex items-center gap-3 overflow-hidden">
+                                {m.teamLogo && <img src={m.teamLogo} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />}
+                                <div className="overflow-hidden">
+                                   <h4 className="font-black text-base sm:text-lg text-slate-900 dark:text-white leading-tight truncate">{m.teamName || 'Unnamed'}</h4>
+                                   <p className="text-[9px] sm:text-[10px] uppercase tracking-widest text-slate-500 mt-0.5 truncate">{m.name || 'Unknown'}</p>
+                                </div>
+                             </div>
                             <div className="text-right shrink-0">
                                <p className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-widest font-bold">Remaining</p>
                                <p className="font-black text-rose-600 dark:text-rose-400 text-lg sm:text-xl tracking-tight">{m.budget?.toLocaleString()} <span className="text-[10px] sm:text-xs text-rose-500/70">pts</span></p>
@@ -268,7 +273,7 @@ export default function ManagerDashboard() {
                                <span>{theirPlayers.length} / {baseQuota}</span>
                             </div>
                             <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                               <div className="h-full bg-gradient-to-r from-rose-500 to-rose-400 transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, (theirPlayers.length / (baseQuota || 15)) * 100)}%` }}></div>
+                               <div className="h-full bg-slate-900 dark:bg-slate-300 transition-all duration-500 rounded-full" style={{ width: `${Math.min(100, (theirPlayers.length / (baseQuota || 15)) * 100)}%` }}></div>
                             </div>
                          </div>
                          

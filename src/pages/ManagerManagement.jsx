@@ -8,14 +8,45 @@ export default function ManagerManagement() {
   
   const [editingManager, setEditingManager] = useState(null);
   const [isAddingManager, setIsAddingManager] = useState(false);
+  const [uploadedLogoUrl, setUploadedLogoUrl] = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setIsUploadingLogo(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'football_preset');
+    
+    try {
+      const res = await fetch('https://api.cloudinary.com/v1_1/nex8nsti/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
+      
+      setUploadedLogoUrl(data.secure_url);
+      showToast("Logo uploaded successfully!", "success");
+    } catch (err) {
+      console.error("Cloudinary Error:", err);
+      showToast(`Upload Error: ${err.message}`, 'error');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
 
   const saveManager = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = {
+      ...(editingManager || {}),
       id: editingManager?.id || Date.now().toString(),
       name: formData.get('name') || '',
       teamName: formData.get('teamName') || '',
+      teamLogo: uploadedLogoUrl || editingManager?.teamLogo || '',
       username: formData.get('username') || '',
       password: formData.get('password') || ''
     };
@@ -30,6 +61,7 @@ export default function ManagerManagement() {
     
     setEditingManager(null);
     setIsAddingManager(false);
+    setUploadedLogoUrl('');
   };
 
   return (
@@ -45,8 +77,8 @@ export default function ManagerManagement() {
         </div>
         
         <button 
-          onClick={() => { setIsAddingManager(true); setEditingManager(null); }} 
-          className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-xl font-bold transition-colors"
+          onClick={() => { setIsAddingManager(true); setEditingManager(null); setUploadedLogoUrl(''); }} 
+          className="flex items-center justify-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 py-3 px-6 rounded-xl font-bold transition-colors"
         >
           <span className="text-[10px] font-black uppercase tracking-widest">+ REGISTER TEAM</span>
         </button>
@@ -59,7 +91,7 @@ export default function ManagerManagement() {
             <h3 className="font-black text-xl text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-tight">
               {editingManager ? 'EDIT FRANCHISE' : 'NEW FRANCHISE'}
             </h3>
-            <button onClick={() => { setIsAddingManager(false); setEditingManager(null); }} className="p-2 text-[10px] font-black tracking-widest text-slate-500 hover:text-red-500 rounded-full transition-colors uppercase">
+            <button onClick={() => { setIsAddingManager(false); setEditingManager(null); setUploadedLogoUrl(''); }} className="p-2 text-[10px] font-black tracking-widest text-slate-500 hover:text-red-500 rounded-full transition-colors uppercase">
               CLOSE
             </button>
           </div>
@@ -77,6 +109,19 @@ export default function ManagerManagement() {
               </div>
               
               <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Team Logo</label>
+                <div className="bg-slate-50 dark:bg-[#161618] p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                  <label className={`flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer font-black tracking-widest uppercase text-[10px] ${isUploadingLogo ? 'opacity-50' : 'hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors'}`}>
+                    {isUploadingLogo ? 'UPLOADING...' : 'UPLOAD LOGO'}
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={isUploadingLogo} className="hidden" />
+                  </label>
+                  {(uploadedLogoUrl || editingManager?.teamLogo) && (
+                    <img src={uploadedLogoUrl || editingManager?.teamLogo} alt="Logo preview" className="w-10 h-10 rounded-full object-cover shrink-0 border-2 border-indigo-500" />
+                  )}
+                </div>
+              </div>
+              
+              <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Login Username</label>
                 <input name="username" defaultValue={editingManager?.username || ''} required className="w-full bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-lg px-4 py-3 text-sm focus:border-indigo-500 outline-none" placeholder="e.g. mancity1" />
               </div>
@@ -88,7 +133,7 @@ export default function ManagerManagement() {
             </div>
 
             <div className="flex justify-end pt-2">
-              <button type="submit" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-8 rounded-lg text-[10px] uppercase tracking-widest font-black transition-colors">
+              <button type="submit" className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 py-3 px-8 rounded-lg text-[10px] uppercase tracking-widest font-black transition-colors">
                 {editingManager ? 'SAVE' : 'REGISTER'}
               </button>
             </div>
@@ -115,8 +160,8 @@ export default function ManagerManagement() {
               
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#1a1a1c] text-slate-700 dark:text-slate-300 font-black flex items-center justify-center shrink-0 border border-slate-200/50 dark:border-slate-700/50">
-                      {m.teamName ? m.teamName.charAt(0).toUpperCase() : 'T'}
+                   <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#1a1a1c] text-slate-700 dark:text-slate-300 font-black flex items-center justify-center shrink-0 border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+                      {m.teamLogo ? <img src={m.teamLogo} alt={m.teamName || 'Logo'} className="w-full h-full object-cover" /> : (m.teamName ? m.teamName.charAt(0).toUpperCase() : 'T')}
                    </div>
                    <div className="overflow-hidden">
                      <h3 className="font-bold text-slate-900 dark:text-white leading-tight truncate">{m.teamName || 'Unnamed Franchise'}</h3>
@@ -125,7 +170,7 @@ export default function ManagerManagement() {
                 </div>
                 
                 <button 
-                  onClick={() => setEditingManager(m)} 
+                  onClick={() => { setEditingManager(m); setUploadedLogoUrl(m.teamLogo || ''); }} 
                   className="w-8 h-8 flex items-center justify-center bg-slate-50 dark:bg-[#1a1a1c] text-slate-400 hover:text-indigo-500 rounded-lg transition-colors shrink-0"
                   title="Edit Team"
                 >
