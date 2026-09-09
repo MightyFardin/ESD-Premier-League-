@@ -141,7 +141,18 @@ const DashboardLayout = ({ children }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  setIsMobileMenuOpen(false);
+                  const wasFullscreen = !!document.fullscreenElement;
+                  if (wasFullscreen) {
+                     // Briefly re-assert fullscreen on navigation if it was active
+                     setTimeout(() => {
+                        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                           document.documentElement.requestFullscreen().catch(() => {});
+                        }
+                     }, 100);
+                  }
+                }}
                 className={`flex items-center gap-3 p-4 rounded-xl font-bold text-sm transition-colors ${
                   isActive 
                     ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400' 
@@ -230,6 +241,16 @@ const DashboardLayout = ({ children }) => {
                <Link
                  key={item.path}
                  to={item.path}
+                 onClick={(e) => {
+                    const wasFullscreen = !!document.fullscreenElement;
+                    if (wasFullscreen) {
+                       setTimeout(() => {
+                          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                             document.documentElement.requestFullscreen().catch(() => {});
+                          }
+                       }, 100);
+                    }
+                  }}
                  className={`flex flex-col items-center justify-center py-4 flex-1 transition-all duration-300 relative gap-1.5 ${
                    isActive 
                      ? 'text-indigo-600 dark:text-indigo-400' 

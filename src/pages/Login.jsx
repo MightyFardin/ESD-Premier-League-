@@ -70,18 +70,69 @@ export default function Login() {
         }
       `}</style>
       
-      {/* Dynamic Background Elements */}
+      {/* Football Pitch Background */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center">
          {/* Subtle Grid texture */}
          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
          
-         {/* Radiating Rings */}
-         <div className="absolute w-[90vw] h-[90vw] sm:w-[80vw] sm:h-[80vw] border border-slate-300 dark:border-white/20 rounded-full opacity-60"></div>
-         <div className="absolute w-[70vw] h-[70vw] sm:w-[60vw] sm:h-[60vw] border-2 border-slate-300 dark:border-white/20 rounded-full opacity-80 border-dashed animate-[spin_120s_linear_infinite]"></div>
-         <div className="absolute w-[50vw] h-[50vw] sm:w-[40vw] sm:h-[40vw] border-4 border-slate-200 dark:border-white/10 rounded-full opacity-100 shadow-[0_0_40px_rgba(0,0,0,0.05)] dark:shadow-[0_0_40px_rgba(255,255,255,0.05)] animate-[spin_60s_linear_infinite_reverse] border-dotted"></div>
+         <style>{`
+           @keyframes rollAcross {
+             0% { left: -20%; transform: rotate(-180deg); }
+             100% { left: 120%; transform: rotate(720deg); }
+           }
+           @keyframes varScan {
+             0%, 100% { top: 10%; opacity: 0; }
+             10% { opacity: 1; }
+             50% { top: 90%; opacity: 1; }
+             90% { opacity: 1; }
+           }
+         `}</style>
+
+         {/* Static Football Pitch */}
+         <div className="absolute opacity-30 dark:opacity-15 text-slate-400 dark:text-white/30 transition-transform duration-1000 ease-out">
+            <div className="relative w-[150vw] h-[100vw] sm:w-[90vw] sm:h-[60vw] border-[4px] border-current rounded-xl flex items-center justify-center transform -rotate-12 scale-110">
+               
+               {/* Center Line */}
+               <div className="absolute w-[4px] h-full bg-current"></div>
+               {/* Center Circle */}
+               <div className="absolute w-[30vw] h-[30vw] sm:w-[20vw] sm:h-[20vw] border-[4px] border-current rounded-full"></div>
+               {/* Center Dot */}
+               <div className="absolute w-4 h-4 bg-current rounded-full"></div>
+               
+               {/* Left Penalty Area */}
+               <div className="absolute left-0 w-[20%] h-[50%] border-[4px] border-l-0 border-current">
+                  <div className="absolute right-[-4px] top-1/2 transform -translate-y-1/2 translate-x-full w-[10vw] h-[15vw] sm:w-[6vw] sm:h-[10vw] border-[4px] border-l-0 border-current rounded-r-full border-t-transparent border-b-transparent"></div>
+               </div>
+               
+               {/* Right Penalty Area */}
+               <div className="absolute right-0 w-[20%] h-[50%] border-[4px] border-r-0 border-current">
+                  <div className="absolute left-[-4px] top-1/2 transform -translate-y-1/2 -translate-x-full w-[10vw] h-[15vw] sm:w-[6vw] sm:h-[10vw] border-[4px] border-r-0 border-current rounded-l-full border-t-transparent border-b-transparent"></div>
+               </div>
+               
+               {/* VAR Scanning Line Animation */}
+               <div className="absolute left-0 w-full h-1 bg-indigo-500/40 dark:bg-indigo-400/40 shadow-[0_0_20px_rgba(99,102,241,0.5)] animate-[varScan_8s_ease-in-out_infinite]"></div>
+
+               {/* Continuous Rolling Football Animation */}
+               <div className="absolute top-[60%] sm:top-[70%] w-12 h-12 sm:w-16 sm:h-16 text-slate-500 dark:text-white/40 animate-[rollAcross_12s_linear_infinite]">
+                  <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="3">
+                     <circle cx="50" cy="50" r="48" />
+                     <polygon points="50,30 65,42 59,59 41,59 35,42" fill="currentColor" opacity="0.6" />
+                     <line x1="50" y1="30" x2="50" y2="2" />
+                     <line x1="65" y1="42" x2="95" y2="35" />
+                     <line x1="59" y1="59" x2="78" y2="88" />
+                     <line x1="41" y1="59" x2="22" y2="88" />
+                     <line x1="35" y1="42" x2="5" y2="35" />
+                  </svg>
+               </div>
+               
+            </div>
+         </div>
          
-         {/* Central Ambient Glow */}
-         <div className="absolute w-[50vw] h-[50vw] bg-slate-400/10 dark:bg-white/5 rounded-full blur-[100px]"></div>
+         {/* Deep central fade to ensure text is readable */}
+         <div className="absolute inset-0 from-transparent via-slate-50/90 to-slate-50 dark:via-[#030303]/90 dark:to-[#030303]" style={{ background: 'radial-gradient(circle, transparent 15%, var(--tw-gradient-stops))' }}></div>
+         
+         {/* Subtle Ambient Glow */}
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-indigo-500/10 dark:bg-white/5 rounded-full blur-[120px]"></div>
       </div>
       
       {/* Hero Section */}
