@@ -7,7 +7,9 @@ export default function Countdown({ targetDate }) {
     if (!targetDate) return;
     
     const calculateTimeLeft = () => {
-      const difference = +new Date(targetDate) - +new Date();
+      // Fix for Safari/iOS: replace hyphens with slashes and 'T' with a space
+      const safeTarget = targetDate.replace(/-/g, '/').replace('T', ' ');
+      const difference = +new Date(safeTarget) - +new Date();
       if (difference > 0) {
         return {
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
