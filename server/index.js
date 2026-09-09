@@ -239,23 +239,30 @@ async function startServer() {
         const spent = state.players.filter(p => p.status === 'sold' && p.teamId === state.liveAuction.highestBidderId).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
         const remainingBudget = state.settings.defaultManagerBudget - spent;
 
-        if (remainingBudget <= 0) {
-           // Find the highest priced player they bought (including the one just sold)
+        const thisManagerCount = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(state.liveAuction.highestBidderId)).length;
+        const totalPlayers = state.players.length;
+        const totalTeams = state.managers.length;
+        const baseQuota = totalTeams > 0 ? Math.floor(totalPlayers / totalTeams) : 0;
+        const remainingToMin = Math.max(0, baseQuota - thisManagerCount);
+        const requiredReservedBudget = remainingToMin * state.settings.defaultBasePrice;
+
+        if (remainingBudget < requiredReservedBudget) {
            const theirPlayers = state.players.filter(p => p.status === 'sold' && p.teamId === state.liveAuction.highestBidderId);
            if (theirPlayers.length > 0) {
               const highestPricedPlayer = theirPlayers.reduce((max, p) => (p.soldPrice || 0) > (max.soldPrice || 0) ? p : max, theirPlayers[0]);
               
-              // Unsell this player as a penalty
                state.players = state.players.map(p => {
                  if (p.id === highestPricedPlayer.id) {
                     const penalisedPlayer = { ...p, status: 'unsold', teamId: null, soldPrice: null };
+                    penalisedPlayer.bannedTeams = penalisedPlayer.bannedTeams || [];
+                    penalisedPlayer.bannedTeams.push(state.liveAuction.highestBidderId);
                     updatedPlayers.push(penalisedPlayer);
                     return penalisedPlayer;
                  }
                  return p;
               });
-              alertMessage = `Manager spent all points! Penalty: Their most expensive player, ${highestPricedPlayer.name}, has been released back to unsold!`;
-              addLog(`Penalty: ${winningManager?.teamName || 'Team'} ran out of budget. ${highestPricedPlayer.name} was returned to unsold.`, 'penalty');
+              alertMessage = `Penalty! ${winningManager?.teamName || 'Team'} didn't have enough reserved budget for the minimum squad (${baseQuota}). Their most expensive player, ${highestPricedPlayer.name}, has been forfeited back to Admin!`;
+              addLog(`Penalty: ${winningManager?.teamName || 'Team'} dropped below minimum budget reserve. ${highestPricedPlayer.name} was forfeited.`, 'penalty');
            }
         }
       } else if (action === 'unsold' && state.liveAuction.currentPlayerId) {
@@ -307,32 +314,53 @@ async function startServer() {
       const totalPlayers = state.players.length;
       const totalTeams = state.managers.length;
       
+      const currentPlayer = state.players.find(p => p.id === state.liveAuction.currentPlayerId);
+      if (currentPlayer && currentPlayer.bannedTeams && currentPlayer.bannedTeams.includes(managerId)) {
+          socket.emit('bidError', { message: "You are banned from bidding on this player because they were previously forfeited from your team!" });
+          return;
+      }
+
       if (totalTeams > 0) {
         const baseQuota = Math.floor(totalPlayers / totalTeams);
+        const thisManagerCount = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(managerId)).length;
         
-        const managerPlayerCounts = {};
-        state.managers.forEach(m => managerPlayerCounts[m.id] = 0);
-        state.players.forEach(p => {
-           if (p.status === 'sold' && p.teamId) {
-             managerPlayerCounts[p.teamId] = (managerPlayerCounts[p.teamId] || 0) + 1;
-           }
-        });
-        
-        const allTeamsFull = state.managers.every(m => managerPlayerCounts[m.id] >= baseQuota);
-        const thisManagerCount = managerPlayerCounts[managerId] || 0;
-        
-        if (!allTeamsFull && thisManagerCount >= baseQuota) {
-           socket.emit('bidError', { message: `Quota Reached: You have ${baseQuota} players. You must wait for all other teams to reach ${baseQuota} players before bidding on extras.` });
-           return;
-        }
-        
-        // Enforce global max squad size setting
         if (thisManagerCount >= state.settings.maxSquadSize) {
            socket.emit('bidError', { message: `Squad Full: You cannot exceed the maximum squad size of ${state.settings.maxSquadSize} players.` });
            return;
         }
+
+        const remainingToMin = Math.max(0, baseQuota - thisManagerCount - 1);
+        const requiredReservedBudget = remainingToMin * state.settings.defaultBasePrice;
+        
+        if (remainingBudget - amount < requiredReservedBudget) {
+            const theirPlayers = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(managerId));
+            if (theirPlayers.length > 0) {
+                const highestPricedPlayer = theirPlayers.reduce((max, p) => (p.soldPrice || 0) > (max.soldPrice || 0) ? p : max, theirPlayers[0]);
+                
+                state.players = state.players.map(p => {
+                  if (p.id === highestPricedPlayer.id) {
+                     return { ...p, status: 'unsold', teamId: null, soldPrice: null, bannedTeams: [...(p.bannedTeams || []), managerId] };
+                  }
+                  return p;
+                });
+                
+                const updatedPlayer = state.players.find(p => p.id === highestPricedPlayer.id);
+                savePlayer(updatedPlayer).catch(e => console.error(e));
+                
+                const alertMsg = `Penalty! ${manager.teamName || manager.name} tried to bid without enough reserved budget for the minimum squad (${baseQuota}). Their most expensive player, ${highestPricedPlayer.name}, has been forfeited and they are banned from bidding on them!`;
+                io.emit('auctionAlert', alertMsg);
+                addLog(`Penalty: ${manager.teamName || manager.name} dropped below minimum budget reserve upon bidding. ${highestPricedPlayer.name} was forfeited.`, 'penalty');
+                broadcastState();
+                
+                socket.emit('bidError', { message: `Bid failed. You didn't have enough reserved budget. Your player ${highestPricedPlayer.name} was forfeited.` });
+                return;
+            } else {
+                socket.emit('bidError', { message: `You do not have enough budget to maintain your required minimum players (${baseQuota}). You need to reserve ${requiredReservedBudget} pts.` });
+                return;
+            }
+        }
       }
-      
+
       if (remainingBudget <= 0) {
          socket.emit('bidError', { message: "Your budget has been exhausted!" });
          return;

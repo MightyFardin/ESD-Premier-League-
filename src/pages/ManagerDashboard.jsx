@@ -70,7 +70,7 @@ export default function ManagerDashboard() {
         </div>
 
         <div className="bg-white dark:bg-[#111] p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-           <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Squad ({baseQuota} max)</p>
+           <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Squad (Min: {baseQuota}, Max: {auctionSettings?.maxSquadSize || 15})</p>
            <p className="font-black text-lg sm:text-xl text-emerald-600 dark:text-emerald-400">{myPlayers.length} <span className="text-[10px] sm:text-xs">plyrs</span></p>
         </div>
 
