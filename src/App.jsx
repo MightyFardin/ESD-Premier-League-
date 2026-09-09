@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useState, Component } from 'react';
+import { createPortal } from 'react-dom';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './AuthContext';
 import { ToastProvider, useToast } from './ToastContext';
@@ -261,8 +262,8 @@ const DashboardLayout = ({ children }) => {
       </div>
       
       {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      {showLogoutConfirm && createPortal(
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-6 rounded-3xl w-full max-w-xs border border-slate-200 dark:border-slate-800 shadow-2xl">
              <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white text-center">Confirm Logout</h3>
              <p className="text-sm font-bold text-slate-500 mb-6 text-center">Are you sure you want to sign out?</p>
@@ -277,7 +278,8 @@ const DashboardLayout = ({ children }) => {
                 <button onClick={() => setShowLogoutConfirm(false)} className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 py-3.5 rounded-xl font-bold text-sm transition-colors">Cancel</button>
              </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

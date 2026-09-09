@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
 import CustomSelect from '../components/CustomSelect';
@@ -656,11 +657,9 @@ export default function LiveAuction() {
              </div>
           </div>
         </div>
-      )}
-
-      {/* Confirmation Modal */}
-      {confirmAction && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      )}      {/* Confirmation Modal */}
+      {confirmAction && createPortal(
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center">
              <div className="w-16 h-16 mx-auto bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-3xl font-black text-slate-400">
                 ?
@@ -684,26 +683,29 @@ export default function LiveAuction() {
                   }} 
                   className={`flex-1 py-3 font-bold rounded-xl text-white ${confirmAction === 'sell' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-500 hover:bg-red-600'}`}
                 >
-                   Confirm
+                  Confirm
                 </button>
              </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Undo Sale Confirmation Modal */}
-      {confirmUndoPlayer && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[500] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      {confirmUndoPlayer && createPortal(
+        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center border border-red-200 dark:border-red-900/30">
              <div className="w-16 h-16 mx-auto bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-4 text-3xl font-black">
                 !
              </div>
-             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">Undo Sale?</h3>
-             <p className="text-sm font-bold text-slate-500 mb-6">
-                Are you sure you want to mark <span className="text-red-500">{confirmUndoPlayer.name}</span> as unsold? This will refund their team's budget.
+             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">
+                Revert Sale?
+             </h3>
+             <p className="text-sm text-slate-500 mb-6">
+                Are you sure you want to revert the sale of <span className="font-bold text-slate-700 dark:text-slate-300">{confirmUndoPlayer.name}</span>? This will move them back to the Unsold queue and remove the record from {confirmUndoPlayer.teamName}.
              </p>
              <div className="flex gap-3">
-                <button onClick={() => setConfirmUndoPlayer(null)} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold">Cancel</button>
+                <button onClick={() => setConfirmUndoPlayer(null)} className="flex-1 btn-secondary py-3">Cancel</button>
                 <button 
                   onClick={() => {
                      socket?.emit('undoSale', confirmUndoPlayer.id);
@@ -711,11 +713,12 @@ export default function LiveAuction() {
                   }} 
                   className="flex-1 py-3 font-bold rounded-xl text-white bg-red-500 hover:bg-red-600 shadow-sm"
                 >
-                   Confirm
+                  Yes, Revert
                 </button>
              </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
