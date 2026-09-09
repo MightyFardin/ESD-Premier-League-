@@ -142,9 +142,8 @@ const DashboardLayout = ({ children }) => {
                 key={item.path}
                 onClick={(e) => {
                   e.preventDefault();
-                  const wasFullscreen = !!document.fullscreenElement;
-                  if (wasFullscreen && document.documentElement.requestFullscreen) {
-                     document.documentElement.requestFullscreen().catch(() => {});
+                  if (document.activeElement && document.activeElement.blur) {
+                    document.activeElement.blur();
                   }
                   navigate(item.path);
                 }}
@@ -237,9 +236,8 @@ const DashboardLayout = ({ children }) => {
                  key={item.path}
                  onClick={(e) => {
                     e.preventDefault();
-                    const wasFullscreen = !!document.fullscreenElement;
-                    if (wasFullscreen && document.documentElement.requestFullscreen) {
-                       document.documentElement.requestFullscreen().catch(() => {});
+                    if (document.activeElement && document.activeElement.blur) {
+                      document.activeElement.blur();
                     }
                     navigate(item.path);
                   }}
