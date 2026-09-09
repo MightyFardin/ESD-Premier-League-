@@ -41,6 +41,7 @@ export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
+    <>
     <div className="space-y-4 md:space-y-6 relative">
       
       {auctionSettings?.auctionStartDate && (
