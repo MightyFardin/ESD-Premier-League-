@@ -372,20 +372,20 @@ export default function LiveAuction() {
               <div key={currentPlayer.id} className="bg-white dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col items-center justify-center shadow-sm min-h-[400px]">
                 
                 {revealStage === 'position' && (
-                   <div className="flex flex-col items-center overflow-hidden py-4 px-8 w-full max-w-md">
+                   <div className="flex flex-col items-center overflow-hidden py-4 px-2 md:px-8 w-full max-w-2xl">
                      <h2 className="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2 animate-slide-in-left w-full text-center">Player Position</h2>
                      <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent my-2 animate-slide-in-left" style={{ animationDelay: '100ms' }}></div>
-                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] animate-slide-in-right w-full text-center mt-2 break-words max-w-full px-4">
+                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] sm:tracking-[0.2em] animate-slide-in-right w-full text-center mt-2 px-2 whitespace-nowrap overflow-hidden text-ellipsis">
                        {getPositionStr(currentPlayer.position)}
                      </h1>
                    </div>
                 )}
                 
                 {revealStage === 'session' && (
-                   <div className="flex flex-col items-center overflow-hidden py-4 px-8 w-full max-w-md">
+                   <div className="flex flex-col items-center overflow-hidden py-4 px-2 md:px-8 w-full max-w-2xl">
                      <h2 className="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2 animate-slide-in-left w-full text-center">Player Session</h2>
                      <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent my-2 animate-slide-in-left" style={{ animationDelay: '100ms' }}></div>
-                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] leading-tight animate-slide-in-right w-full text-center mt-2 break-words max-w-full px-4">
+                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] sm:tracking-[0.2em] leading-tight animate-slide-in-right w-full text-center mt-2 px-2 whitespace-nowrap overflow-hidden text-ellipsis">
                        {getSessionStr(currentPlayer.studentId)}
                      </h1>
                    </div>
