@@ -138,22 +138,18 @@ const DashboardLayout = ({ children }) => {
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
                 onClick={(e) => {
+                  e.preventDefault();
                   setIsMobileMenuOpen(false);
                   const wasFullscreen = !!document.fullscreenElement;
-                  if (wasFullscreen) {
-                     // Briefly re-assert fullscreen on navigation if it was active
-                     setTimeout(() => {
-                        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-                           document.documentElement.requestFullscreen().catch(() => {});
-                        }
-                     }, 100);
+                  if (wasFullscreen && document.documentElement.requestFullscreen) {
+                     document.documentElement.requestFullscreen().catch(() => {});
                   }
+                  navigate(item.path);
                 }}
-                className={`flex items-center gap-3 p-4 rounded-xl font-bold text-sm transition-colors ${
+                className={`w-full text-left flex items-center gap-3 p-4 rounded-xl font-bold text-sm transition-colors ${
                   isActive 
                     ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400' 
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#161618]'
@@ -163,7 +159,7 @@ const DashboardLayout = ({ children }) => {
                   <NavIcon type={item.icon} />
                 </div>
                 {item.label}
-              </Link>
+              </button>
             );
           })}
         </nav>
@@ -238,18 +234,15 @@ const DashboardLayout = ({ children }) => {
              else if (item.label.includes('Database')) shortLabel = 'DATA';
              
              return (
-               <Link
+               <button
                  key={item.path}
-                 to={item.path}
                  onClick={(e) => {
+                    e.preventDefault();
                     const wasFullscreen = !!document.fullscreenElement;
-                    if (wasFullscreen) {
-                       setTimeout(() => {
-                          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-                             document.documentElement.requestFullscreen().catch(() => {});
-                          }
-                       }, 100);
+                    if (wasFullscreen && document.documentElement.requestFullscreen) {
+                       document.documentElement.requestFullscreen().catch(() => {});
                     }
+                    navigate(item.path);
                   }}
                  className={`flex flex-col items-center justify-center py-4 flex-1 transition-all duration-300 relative gap-1.5 ${
                    isActive 
@@ -264,7 +257,7 @@ const DashboardLayout = ({ children }) => {
                  {isActive && (
                    <div className="absolute top-0 w-10 h-1 bg-indigo-600 dark:bg-indigo-400 rounded-b-full shadow-sm shadow-indigo-600/30"></div>
                  )}
-               </Link>
+               </button>
              );
            })}
          </div>
