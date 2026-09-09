@@ -446,40 +446,59 @@ export default function LiveAuction() {
 
                 {user?.role === 'manager' ? (
                   <div className="space-y-4 w-full mt-auto">
-                    <button 
-                      onClick={() => handleBid(null)}
-                      disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam.id}
-                      className="w-full py-4 md:py-5 text-xl font-black rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
-                    >
-                      {liveAuction.highestBidderId === myTeam.id ? 'YOU ARE HIGHEST' : isFirstBid ? `BID BASE (${liveAuction.currentBid})` : `BID +${currentIncrement}`}
-                    </button>
-                    
-                    {auctionSettings?.allowCustomBids && (
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <input 
-                          type="number" 
-                          className="bg-slate-50 dark:bg-[#151515] border border-slate-200 dark:border-slate-800 rounded-xl h-14 px-4 flex-1 text-center sm:text-left text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" 
-                          placeholder="Custom bid..."
-                          value={customBid}
-                          onChange={e => setCustomBid(e.target.value)}
-                          disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam.id}
-                        />
-                        <button 
-                          onClick={() => {
-                            const val = parseInt(customBid);
-                            if (isNaN(val)) return showToast("Enter a valid amount", "error");
-                            if (isFirstBid ? val >= liveAuction.currentBid : val > liveAuction.currentBid) {
-                               handleBid(val);
-                            } else {
-                               showToast(`Bid must be ${isFirstBid ? 'at least' : 'higher than'} current bid!`, 'error');
-                            }
-                          }}
-                          disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam.id}
-                          className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-14 px-6 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Place Bid
-                        </button>
-                      </div>
+                    {liveAuction.passedTeams?.includes(myTeam?.id) ? (
+                       <div className="w-full py-4 text-center font-black text-red-500 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl uppercase tracking-widest text-sm">
+                          You Have Withdrawn
+                       </div>
+                    ) : (
+                      <>
+                        <div className="flex gap-3">
+                          <button 
+                            onClick={() => {
+                               setConfirmAction('withdraw');
+                            }}
+                            disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam?.id}
+                            className="py-4 md:py-5 px-5 md:px-8 text-sm md:text-base font-black rounded-xl bg-slate-100 dark:bg-[#1a1a1a] text-slate-400 dark:text-slate-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed uppercase tracking-widest"
+                          >
+                            Out
+                          </button>
+                          <button 
+                            onClick={() => handleBid(null)}
+                            disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam?.id}
+                            className="flex-1 py-4 md:py-5 text-xl font-black rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                          >
+                            {liveAuction.highestBidderId === myTeam?.id ? 'YOU ARE HIGHEST' : isFirstBid ? `BID BASE (${liveAuction.currentBid})` : `BID +${currentIncrement}`}
+                          </button>
+                        </div>
+                        
+                        {auctionSettings?.allowCustomBids && (
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <input 
+                              type="number" 
+                              className="bg-slate-50 dark:bg-[#151515] border border-slate-200 dark:border-slate-800 rounded-xl h-14 px-4 flex-1 text-center sm:text-left text-lg font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors" 
+                              placeholder="Custom bid..."
+                              value={customBid}
+                              onChange={e => setCustomBid(e.target.value)}
+                              disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam?.id}
+                            />
+                            <button 
+                              onClick={() => {
+                                const val = parseInt(customBid);
+                                if (isNaN(val)) return showToast("Enter a valid amount", "error");
+                                if (isFirstBid ? val >= liveAuction.currentBid : val > liveAuction.currentBid) {
+                                   handleBid(val);
+                                } else {
+                                   showToast(`Bid must be ${isFirstBid ? 'at least' : 'higher than'} current bid!`, 'error');
+                                }
+                              }}
+                              disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam?.id}
+                              className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-14 px-6 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 dark:hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Place Bid
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                     
                     <div className="mt-4 p-4 bg-slate-50 dark:bg-[#151515] rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -665,20 +684,26 @@ export default function LiveAuction() {
                 ?
              </div>
              <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">
-                {confirmAction === 'sell' ? 'Finalize Sale?' : confirmAction === 'unsold' ? 'Mark Unsold?' : 'Cancel Auction?'}
+                {confirmAction === 'sell' ? 'Finalize Sale?' : confirmAction === 'unsold' ? 'Mark Unsold?' : confirmAction === 'cancel' ? 'Cancel Auction?' : 'Withdraw?'}
              </h3>
              <p className="text-sm text-slate-500 mb-6">
                 {confirmAction === 'sell' 
                   ? `Are you sure you want to sell ${currentPlayer?.name} to ${highestBidder?.name || highestBidder?.teamName} for ${liveAuction.currentBid} points?`
                   : confirmAction === 'unsold' 
                   ? `Are you sure you want to skip ${currentPlayer?.name} and mark them as unsold?`
-                  : `Are you sure you want to cancel this auction? No changes will be saved.`}
+                  : confirmAction === 'cancel'
+                  ? `Are you sure you want to cancel this auction? No changes will be saved.`
+                  : `Are you sure you want to withdraw from bidding for this player? You cannot bid again.`}
              </p>
              <div className="flex gap-3">
                 <button onClick={() => setConfirmAction(null)} className="flex-1 btn-secondary py-3">Cancel</button>
                 <button 
                   onClick={() => {
-                     socket?.emit('stopAuction', confirmAction);
+                     if (confirmAction === 'withdraw') {
+                        socket?.emit('passBid', myTeam.id);
+                     } else {
+                        socket?.emit('stopAuction', confirmAction);
+                     }
                      setConfirmAction(null);
                   }} 
                   className={`flex-1 py-3 font-bold rounded-xl text-white ${confirmAction === 'sell' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-500 hover:bg-red-600'}`}

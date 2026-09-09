@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../AuthContext';
 import Countdown from '../components/Countdown';
 
 export default function ManagerDashboard() {
-  const { user, managers, players, bids, auctionSettings } = useAuth();
+  const { user, managers, players, bids, auctionSettings, socket } = useAuth();
   
   const [activeTab, setActiveTab] = useState('squad');
+  const [confirmClear, setConfirmClear] = useState(false);
   const [watchlist, setWatchlist] = useState(() => {
      const saved = localStorage.getItem(`watchlist_${user.id}`);
      return saved ? JSON.parse(saved) : [];
@@ -305,8 +307,11 @@ export default function ManagerDashboard() {
 
         {activeTab === 'history' && (
            <>
-              <div className="p-6 md:px-8 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#131315]">
+              <div className="p-6 md:px-8 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-[#131315] flex justify-between items-center">
                 <h3 className="font-black text-lg tracking-tight text-blue-600 dark:text-blue-500">Your Bidding Log</h3>
+                {bids.filter(b => b.managerId === user.id).length > 0 && (
+                  <button onClick={() => setConfirmClear(true)} className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-widest bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-md transition-colors">Clear</button>
+                )}
               </div>
               <div className="divide-y divide-slate-100 dark:divide-slate-800/80 max-h-[600px] overflow-y-auto custom-scrollbar bg-white dark:bg-[#111]">
                 {bids.filter(b => b.managerId === user.id).length === 0 ? (
@@ -338,5 +343,26 @@ export default function ManagerDashboard() {
         )}
       </div>
     </div>
+    
+    {confirmClear && createPortal(
+      <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+         <div className="bg-white dark:bg-[#111] p-6 rounded-2xl w-full max-w-sm shadow-2xl text-center animate-slide-up" style={{ animationDuration: '0.2s' }}>
+            <div className="w-16 h-16 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4 text-3xl font-black text-red-500">
+               !
+            </div>
+            <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">Clear History?</h3>
+            <p className="text-sm text-slate-500 mb-6">Are you sure you want to delete your entire bidding history? This cannot be undone.</p>
+            <div className="flex gap-3">
+               <button onClick={() => setConfirmClear(false)} className="flex-1 btn-secondary py-3">Cancel</button>
+               <button onClick={() => {
+                  socket?.emit('clearManagerBids', user.id);
+                  setConfirmClear(false);
+               }} className="flex-1 py-3 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 transition-colors">Clear</button>
+            </div>
+         </div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 }

@@ -39,6 +39,7 @@ let state = {
     currentIncrement: 5,
     highestBidderId: null,
     history: [],
+    passedTeams: [],
     auctionEndAt: null,
     timerPaused: false,
     timerRemaining: 0
@@ -197,6 +198,7 @@ async function startServer() {
           currentIncrement: calculateIncrement(basePrice),
           highestBidderId: null,
           history: [],
+          passedTeams: [],
           auctionEndAt: Date.now() + 4000 + (state.settings.auctionTimerDuration * 1000),
           timerPaused: true,
           timerRemaining: state.settings.auctionTimerDuration
@@ -275,6 +277,7 @@ async function startServer() {
         currentIncrement: 10, 
         highestBidderId: null, 
         history: [],
+        passedTeams: [],
         auctionEndAt: null,
         timerPaused: false,
         timerRemaining: 0
@@ -291,13 +294,15 @@ async function startServer() {
     });
 
     socket.on('placeBid', ({ amount, managerId }) => {
-      const manager = state.managers.find(m => m.id === managerId);
-      const spent = state.players.filter(p => p.status === 'sold' && p.teamId === managerId).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
+      console.log(`[placeBid] received amount: ${amount}, managerId: ${managerId} (type: ${typeof managerId})`);
+      const manager = state.managers.find(m => String(m.id) === String(managerId));
+      if (!manager) console.log(`[placeBid] manager not found for id ${managerId}! available managers:`, state.managers.map(m => m.id));
+      const spent = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(managerId)).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
       const remainingBudget = state.settings.defaultManagerBudget - spent;
       
       const isFirstBid = state.liveAuction.highestBidderId === null;
       const isValidAmount = isFirstBid ? amount >= state.liveAuction.currentBid : amount > state.liveAuction.currentBid;
-      const isConsecutiveBid = state.liveAuction.highestBidderId === managerId;
+      const isConsecutiveBid = String(state.liveAuction.highestBidderId) === String(managerId);
       
       const totalPlayers = state.players.length;
       const totalTeams = state.managers.length;
@@ -335,6 +340,11 @@ async function startServer() {
 
       if (isConsecutiveBid) {
          socket.emit('bidError', { message: "You are already the highest bidder!" });
+         return;
+      }
+      
+      if (state.liveAuction.passedTeams?.includes(managerId)) {
+         socket.emit('bidError', { message: "You have withdrawn from bidding on this player!" });
          return;
       }
       
@@ -409,6 +419,44 @@ async function startServer() {
        }
     });
 
+    socket.on('passBid', (managerId) => {
+      console.log(`[passBid] received managerId: ${managerId} (type: ${typeof managerId})`);
+      const manager = state.managers.find(m => String(m.id) === String(managerId));
+      if (!manager) {
+        console.log(`[passBid] manager not found for id ${managerId}!`);
+        return;
+      }
+      if (!state.liveAuction.passedTeams) state.liveAuction.passedTeams = [];
+      
+      if (state.liveAuction.highestBidderId === managerId) {
+         socket.emit('bidError', { message: "You cannot withdraw while holding the highest bid!" });
+         return;
+      }
+
+      if (!state.liveAuction.passedTeams.includes(managerId)) {
+        state.liveAuction.passedTeams.push(managerId);
+        addLog(`${manager.teamName || manager.name} has withdrawn from bidding.`, 'info');
+        broadcastState();
+
+        const activeTeams = state.managers.length;
+        if (activeTeams > 0) {
+          const hasBids = state.liveAuction.highestBidderId !== null;
+          const requiredPasses = hasBids ? activeTeams - 1 : activeTeams;
+          if (state.liveAuction.passedTeams.length >= requiredPasses) {
+            io.emit('auctionAlert', `All eligible teams have withdrawn!`);
+            addLog(`All competing teams have withdrawn.`, 'info');
+          }
+        }
+      }
+    });
+
+    socket.on('clearManagerBids', (managerId) => {
+      state.bids = state.bids.filter(b => String(b.managerId) !== String(managerId));
+      broadcastState();
+      const manager = state.managers.find(m => String(m.id) === String(managerId));
+      if (manager) addLog(`${manager.teamName || manager.name} cleared their bidding history.`, 'info');
+    });
+
     socket.on('pauseTimer', () => {
       if (state.liveAuction.status === 'active' && !state.liveAuction.timerPaused && state.liveAuction.auctionEndAt) {
         state.liveAuction.timerPaused = true;
@@ -447,7 +495,7 @@ async function startServer() {
            players: [],
            managers: [],
            settings: state.settings,
-           liveAuction: { status: 'idle', currentPlayerId: null, currentBid: 0, currentIncrement: 10, highestBidderId: null, history: [], auctionEndAt: null, timerPaused: false, timerRemaining: 0 },
+           liveAuction: { status: 'idle', currentPlayerId: null, currentBid: 0, currentIncrement: 10, highestBidderId: null, history: [], passedTeams: [], auctionEndAt: null, timerPaused: false, timerRemaining: 0 },
            bids: [],
            logs: []
         };
