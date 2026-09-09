@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
+import Countdown from '../components/Countdown';
 
 export default function AdminSettings() {
   const { auctionSettings, socket } = useAuth();
@@ -183,6 +184,12 @@ export default function AdminSettings() {
                   </button>
                 </div>
                 <p className="text-xs text-slate-400 font-medium">Sets a global countdown timer. Clicking "Start Auction Now" will instantly clear the timer.</p>
+                {localSettings.auctionStartDate && (
+                   <div className="mt-4 p-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-[#0a0a0c]">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 text-center">Live Preview (For managers & players)</p>
+                     <Countdown targetDate={localSettings.auctionStartDate} />
+                   </div>
+                )}
               </div>
             </div>
           </section>
