@@ -70,11 +70,18 @@ export default function Login() {
         }
       `}</style>
       
-      {/* Minimal Background Elements */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center opacity-40 dark:opacity-20">
-         <div className="absolute w-[80vw] h-[80vw] border-[1px] border-slate-200 dark:border-white/10 rounded-full"></div>
-         <div className="absolute w-[60vw] h-[60vw] border-[1px] border-slate-200 dark:border-white/10 rounded-full"></div>
-         <div className="absolute w-[40vw] h-[40vw] border-[1px] border-slate-200 dark:border-white/10 rounded-full"></div>
+      {/* Dynamic Background Elements */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden flex items-center justify-center">
+         {/* Subtle Grid texture */}
+         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+         
+         {/* Radiating Rings */}
+         <div className="absolute w-[90vw] h-[90vw] sm:w-[80vw] sm:h-[80vw] border border-slate-300 dark:border-white/20 rounded-full opacity-60"></div>
+         <div className="absolute w-[70vw] h-[70vw] sm:w-[60vw] sm:h-[60vw] border-2 border-slate-300 dark:border-white/20 rounded-full opacity-80 border-dashed animate-[spin_120s_linear_infinite]"></div>
+         <div className="absolute w-[50vw] h-[50vw] sm:w-[40vw] sm:h-[40vw] border-4 border-slate-200 dark:border-white/10 rounded-full opacity-100 shadow-[0_0_40px_rgba(0,0,0,0.05)] dark:shadow-[0_0_40px_rgba(255,255,255,0.05)] animate-[spin_60s_linear_infinite_reverse] border-dotted"></div>
+         
+         {/* Central Ambient Glow */}
+         <div className="absolute w-[50vw] h-[50vw] bg-slate-400/10 dark:bg-white/5 rounded-full blur-[100px]"></div>
       </div>
       
       {/* Hero Section */}
