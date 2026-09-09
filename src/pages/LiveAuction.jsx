@@ -18,7 +18,7 @@ const getPositionStr = (pos) => {
   const upper = pos.toUpperCase();
   if (upper === 'GK' || upper === 'GOALKEEPER') return 'Goalkeeper';
   if (upper === 'DEF' || upper === 'DEFENDER') return 'Defender';
-  if (upper === 'MID' || upper === 'MIDFIELD' || upper === 'MIDFIELDER') return 'Midfielder';
+  if (upper === 'MID' || upper === 'MIDFIELD' || upper === 'MIDFIELDER') return 'Midfield';
   if (upper === 'FWD' || upper === 'ATTACKER' || upper === 'FORWARD') return 'Attacker';
   return pos;
 };
@@ -376,7 +376,7 @@ export default function LiveAuction() {
                    <div className="flex flex-col items-center overflow-hidden py-4 px-2 md:px-8 w-full max-w-2xl">
                      <h2 className="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2 animate-slide-in-left w-full text-center">Player Position</h2>
                      <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent my-2 animate-slide-in-left" style={{ animationDelay: '100ms' }}></div>
-                     <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] sm:tracking-[0.15em] animate-slide-in-right w-full text-center mt-2 px-2 whitespace-nowrap">
+                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-widest animate-slide-in-right w-full text-center mt-2 px-2 break-words">
                        {getPositionStr(currentPlayer.position)}
                      </h1>
                    </div>
@@ -386,7 +386,7 @@ export default function LiveAuction() {
                    <div className="flex flex-col items-center overflow-hidden py-4 px-2 md:px-8 w-full max-w-2xl">
                      <h2 className="text-sm md:text-base font-bold text-slate-400 uppercase tracking-widest mb-2 animate-slide-in-left w-full text-center">Player Session</h2>
                      <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent my-2 animate-slide-in-left" style={{ animationDelay: '100ms' }}></div>
-                     <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] sm:tracking-[0.15em] leading-tight animate-slide-in-right w-full text-center mt-2 px-2 whitespace-nowrap">
+                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-widest leading-tight animate-slide-in-right w-full text-center mt-2 px-2 break-words">
                        {getSessionStr(currentPlayer.studentId)}
                      </h1>
                    </div>
