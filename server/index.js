@@ -7,6 +7,11 @@ const { initDB, loadState, savePlayer, deletePlayerDB, deleteAllPlayersDB, saveM
 const app = express();
 app.use(cors());
 
+// Health check endpoint for uptime monitoring (e.g., cron-job.org)
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] }
