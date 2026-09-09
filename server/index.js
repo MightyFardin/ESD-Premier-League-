@@ -513,6 +513,7 @@ async function startServer() {
           } else {
             state.liveAuction.auctionEndAt += (seconds * 1000);
           }
+          state.liveAuction.timerRemaining = Math.max(0, Math.ceil((state.liveAuction.auctionEndAt - now) / 1000));
         }
         broadcastState();
       }

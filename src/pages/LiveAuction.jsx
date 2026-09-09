@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
@@ -92,22 +92,33 @@ export default function LiveAuction() {
     };
   }, [socket, showToast]);
 
+  const endAtRef = useRef(null);
+  
   useEffect(() => {
     if (liveAuction.timerPaused) {
-      setTimeLeft(liveAuction.timerRemaining);
+      setTimeLeft(liveAuction.timerRemaining || 0);
+      endAtRef.current = null;
       return;
     }
     
-    const localEndAt = Date.now() + (liveAuction.timerRemaining * 1000);
+    // Only set new target if serverEndAt actually changed (e.g., new bid or addTime)
+    if (!endAtRef.current || endAtRef.current.serverEndAt !== liveAuction.auctionEndAt) {
+      endAtRef.current = {
+        serverEndAt: liveAuction.auctionEndAt,
+        localTarget: Date.now() + ((liveAuction.timerRemaining || 0) * 1000)
+      };
+    }
+    
+    const targetEndAt = endAtRef.current.localTarget;
     let interval = null;
     
     if (liveAuction.status === 'active') {
       interval = setInterval(() => {
         const now = Date.now();
-        if (now >= localEndAt) {
+        if (now >= targetEndAt) {
           setTimeLeft(0);
         } else {
-          setTimeLeft(Math.ceil((localEndAt - now) / 1000));
+          setTimeLeft(Math.ceil((targetEndAt - now) / 1000));
         }
       }, 100);
     } else {
