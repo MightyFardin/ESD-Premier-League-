@@ -21,6 +21,13 @@ export default function AdminDashboard() {
   const { showToast } = useToast();
   const navigate = useNavigate();
   
+  useEffect(() => {
+    if (!socket) return;
+    const handleAssignError = (err) => showToast(err.message, 'error');
+    socket.on('assignError', handleAssignError);
+    return () => socket.off('assignError', handleAssignError);
+  }, [socket, showToast]);
+
   const [activeTab, setActiveTab] = useState('players'); // 'players', 'teams'
   
   const [editingPlayer, setEditingPlayer] = useState(null);
@@ -119,23 +126,26 @@ export default function AdminDashboard() {
        }
     }
     
+    const formTeamId = formData.get('teamId');
+    const formSoldPrice = formData.get('soldPrice');
+    
     const player = {
       id: editingPlayer?.id || Date.now().toString(),
       name: formData.get('name'),
       studentId: studentId,
       position: selectedPosition,
       pic: finalPicUrl,
-      status: editingPlayer?.status || 'unsold',
-      teamId: editingPlayer?.teamId || null,
-      soldPrice: editingPlayer?.soldPrice || null
+      status: formTeamId ? 'sold' : (editingPlayer?.status || 'unsold'),
+      teamId: formTeamId || null,
+      soldPrice: formTeamId ? Number(formSoldPrice || 0) : null
     };
 
     if (editingPlayer?.id) {
       socket?.emit('editPlayer', player);
-      showToast('Player updated!');
+      showToast('Saving player...');
     } else {
       socket?.emit('addPlayer', player);
-      showToast('Player added!');
+      showToast('Adding player...');
     }
     setEditingPlayer(null);
     setIsAddingPlayer(false);
@@ -618,6 +628,14 @@ export default function AdminDashboard() {
                         { value: 'Attacker', label: 'Attacker' }
                       ]}
                     />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <select name="teamId" defaultValue={editingPlayer?.teamId || ''} className="flex-1 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:border-indigo-500 outline-none font-bold text-slate-900 dark:text-white">
+                      <option value="">-- Unassigned --</option>
+                      {managers.map(m => <option key={m.id} value={m.id}>{m.teamName || m.name}</option>)}
+                    </select>
+                    <input name="soldPrice" type="number" defaultValue={editingPlayer?.soldPrice || ''} placeholder="Price" className="w-1/3 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:border-indigo-500 outline-none font-bold text-slate-900 dark:text-white placeholder:text-slate-400" />
                   </div>
 
                   <div className="flex gap-2 pt-2">

@@ -131,6 +131,39 @@ async function startServer() {
     });
 
     socket.on('editPlayer', (updatedPlayer) => {
+      const oldPlayer = state.players.find(p => p.id === updatedPlayer.id);
+      
+      // If Admin is manually assigning the player to a new team
+      if (updatedPlayer.teamId && (!oldPlayer || oldPlayer.teamId !== updatedPlayer.teamId)) {
+          const teamId = updatedPlayer.teamId;
+          const soldPrice = Number(updatedPlayer.soldPrice || 0);
+          const manager = state.managers.find(m => String(m.id) === String(teamId));
+          
+          if (manager) {
+              const spent = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(teamId)).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
+              const remainingBudget = state.settings.defaultManagerBudget - spent;
+              
+              const thisManagerCount = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(teamId)).length;
+              if (thisManagerCount >= state.settings.maxSquadSize) {
+                  return socket.emit('assignError', {message: `Squad Full: This manager cannot exceed the maximum squad size of ${state.settings.maxSquadSize} players.`});
+              }
+              
+              const totalPlayers = state.players.length;
+              const totalTeams = state.managers.length;
+              if (totalTeams > 0) {
+                 const baseQuota = Math.floor(totalPlayers / totalTeams);
+                 const remainingToMin = Math.max(0, baseQuota - thisManagerCount - 1);
+                 const requiredReservedBudget = remainingToMin * state.settings.defaultBasePrice;
+                 
+                 if (remainingBudget - soldPrice < requiredReservedBudget) {
+                     return socket.emit('assignError', {message: `Assign failed! Manager needs to reserve ${requiredReservedBudget} pts for the minimum squad. Remaining budget: ${remainingBudget}`});
+                 }
+              }
+              
+              addLog(`Admin manually assigned ${updatedPlayer.name} to ${manager.teamName || manager.name} for ${soldPrice} pts.`, 'sold');
+          }
+      }
+
       state.players = state.players.map(p => p.id === updatedPlayer.id ? updatedPlayer : p);
       broadcastState();
       savePlayer(updatedPlayer).catch(e => console.error(e));
