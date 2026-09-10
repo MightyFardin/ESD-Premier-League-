@@ -304,8 +304,6 @@ async function startServer() {
                state.players = state.players.map(p => {
                  if (p.id === highestPricedPlayer.id) {
                     const penalisedPlayer = { ...p, status: 'unsold', teamId: null, soldPrice: null };
-                    penalisedPlayer.bannedTeams = penalisedPlayer.bannedTeams || [];
-                    penalisedPlayer.bannedTeams.push(state.liveAuction.highestBidderId);
                     updatedPlayers.push(penalisedPlayer);
                     return penalisedPlayer;
                  }
@@ -389,7 +387,7 @@ async function startServer() {
                 
                 state.players = state.players.map(p => {
                   if (p.id === highestPricedPlayer.id) {
-                     return { ...p, status: 'unsold', teamId: null, soldPrice: null, bannedTeams: [...(p.bannedTeams || []), managerId] };
+                     return { ...p, status: 'unsold', teamId: null, soldPrice: null };
                   }
                   return p;
                 });
@@ -397,7 +395,7 @@ async function startServer() {
                 const updatedPlayer = state.players.find(p => p.id === highestPricedPlayer.id);
                 savePlayer(updatedPlayer).catch(e => console.error(e));
                 
-                const alertMsg = `Penalty! ${manager.teamName || manager.name} tried to bid without enough reserved budget for the minimum squad (${baseQuota}). Their most expensive player, ${highestPricedPlayer.name}, has been forfeited and they are banned from bidding on them!`;
+                const alertMsg = `Penalty! ${manager.teamName || manager.name} tried to bid without enough reserved budget for the minimum squad (${baseQuota}). Their most expensive player, ${highestPricedPlayer.name}, has been forfeited!`;
                 io.emit('auctionAlert', alertMsg);
                 addLog(`Penalty: ${manager.teamName || manager.name} dropped below minimum budget reserve upon bidding. ${highestPricedPlayer.name} was forfeited.`, 'penalty');
                 broadcastState();
