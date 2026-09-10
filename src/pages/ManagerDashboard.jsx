@@ -31,14 +31,13 @@ export default function ManagerDashboard() {
   const getPosCount = (posKeywords) => myPlayers.filter(p => {
     if (!p.position) return false;
     const pos = p.position.toLowerCase();
-    // Special case for exact matching "cb", "lb", "rb" etc to avoid false positives, 
-    // but includes is generally fine for 'gk', 'def', 'mid', 'att', 'forward'
     return posKeywords.some(kw => {
-       if (kw.length <= 3) {
-          // for short abbreviations, do exact or word boundary match
-          return pos === kw.toLowerCase() || pos.includes(` ${kw.toLowerCase()} `) || pos.startsWith(`${kw.toLowerCase()} `) || pos.endsWith(` ${kw.toLowerCase()}`);
+       const keyword = kw.toLowerCase();
+       if (keyword.length <= 3) {
+          const parts = pos.split(/[\s,;/|-]+/);
+          return parts.includes(keyword);
        }
-       return pos.includes(kw.toLowerCase());
+       return pos.includes(keyword);
     });
   }).length;
   
@@ -89,9 +88,9 @@ export default function ManagerDashboard() {
         <div className="col-span-2 md:col-span-1 bg-white dark:bg-[#111] p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9px] sm:text-[10px] font-bold text-slate-500">
              <div className="flex justify-between border-b border-slate-100 dark:border-slate-800/80 pb-0.5"><span>GK:</span><span className="text-slate-900 dark:text-white">{getPosCount(['gk', 'goalkeeper'])}</span></div>
-             <div className="flex justify-between border-b border-slate-100 dark:border-slate-800/80 pb-0.5"><span>DEF:</span><span className="text-slate-900 dark:text-white">{getPosCount(['def', 'cb', 'lb', 'rb', 'defender'])}</span></div>
-             <div className="flex justify-between pt-0.5"><span>MID:</span><span className="text-slate-900 dark:text-white">{getPosCount(['mid', 'cm', 'cdm', 'cam', 'lm', 'rm', 'midfielder'])}</span></div>
-             <div className="flex justify-between pt-0.5"><span>ATT:</span><span className="text-slate-900 dark:text-white">{getPosCount(['att', 'forward', 'fw', 'st', 'lw', 'rw', 'cf', 'attacker'])}</span></div>
+             <div className="flex justify-between border-b border-slate-100 dark:border-slate-800/80 pb-0.5"><span>DEF:</span><span className="text-slate-900 dark:text-white">{getPosCount(['def', 'cb', 'lb', 'rb', 'defender', 'defense'])}</span></div>
+             <div className="flex justify-between pt-0.5"><span>MID:</span><span className="text-slate-900 dark:text-white">{getPosCount(['mid', 'cm', 'cdm', 'cam', 'lm', 'rm', 'midfielder', 'midfield'])}</span></div>
+             <div className="flex justify-between pt-0.5"><span>ATT:</span><span className="text-slate-900 dark:text-white">{getPosCount(['att', 'forward', 'fw', 'st', 'lw', 'rw', 'cf', 'attacker', 'attack'])}</span></div>
            </div>
         </div>
       </div>
