@@ -16,8 +16,198 @@ const getSessionStr = (studentId) => {
   return `20${prefixStr}-20${prefix + 1}`;
 };
 
+const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
+  const [teamAId, setTeamAId] = useState(fixture?.teamAId || '');
+  const [teamBId, setTeamBId] = useState(fixture?.teamBId || '');
+  const [status, setStatus] = useState(fixture?.status || 'upcoming');
+  const [events, setEvents] = useState(fixture?.events || []);
+  const [teamAGoals, setTeamAGoals] = useState(fixture?.teamAGoals || 0);
+  const [teamBGoals, setTeamBGoals] = useState(fixture?.teamBGoals || 0);
+
+  const teamAPlayers = players.filter(p => p.teamId === teamAId && p.status === 'sold');
+  const teamBPlayers = players.filter(p => p.teamId === teamBId && p.status === 'sold');
+
+  const handleAddGoal = (teamId) => {
+     setEvents([...events, { id: Date.now().toString(), teamId, type: 'goal', playerId: '', minute: '' }]);
+     if (teamId === teamAId) setTeamAGoals(prev => prev + 1);
+     if (teamId === teamBId) setTeamBGoals(prev => prev + 1);
+  };
+  const handleEventChange = (id, field, value) => {
+     setEvents(events.map(e => e.id === id ? { ...e, [field]: value } : e));
+  };
+  const handleRemoveEvent = (id) => {
+     const ev = events.find(e => e.id === id);
+     setEvents(events.filter(e => e.id !== id));
+     if (ev && ev.type === 'goal') {
+       if (ev.teamId === teamAId) setTeamAGoals(prev => Math.max(0, prev - 1));
+       if (ev.teamId === teamBId) setTeamBGoals(prev => Math.max(0, prev - 1));
+     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    onSave({
+      id: fixture?.id || Date.now().toString(),
+      teamAId,
+      teamBId,
+      date: formData.get('date'),
+      venue: formData.get('venue'),
+      status,
+      teamAGoals: status === 'upcoming' ? 0 : Math.max(teamAGoals, events.filter(e => e.teamId === teamAId).length),
+      teamBGoals: status === 'upcoming' ? 0 : Math.max(teamBGoals, events.filter(e => e.teamId === teamBId).length),
+      events: status === 'upcoming' ? [] : events
+    });
+  };
+
+  const TeamPicker = ({ selectedId, onSelect, label, excludeId }) => {
+     const [isOpen, setIsOpen] = useState(false);
+     const selectedTeam = managers.find(m => m.id === selectedId);
+
+     return (
+        <div className="flex-1 relative min-w-[120px]">
+           {!isOpen && !selectedId ? (
+              <div onClick={() => setIsOpen(true)} className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+                 <span className="text-sm font-bold uppercase tracking-widest">+ {label}</span>
+              </div>
+           ) : !isOpen && selectedId ? (
+              <div onClick={() => setIsOpen(true)} className="flex items-center gap-3 p-3 bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer hover:ring-2 hover:ring-indigo-500 shadow-sm transition-all" title={`Change ${label}`}>
+                 {selectedTeam?.teamLogo ? (
+                    <img src={selectedTeam.teamLogo} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                 ) : (
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs shrink-0">
+                       {(selectedTeam?.teamName || selectedTeam?.name || 'T').charAt(0)}
+                    </div>
+                 )}
+                 <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-tight">{label}</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-white truncate leading-tight">{selectedTeam?.teamName || selectedTeam?.name}</p>
+                 </div>
+              </div>
+           ) : (
+              <div className="bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-lg absolute z-10 w-full left-0 min-w-[300px]">
+                 <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select {label}</span>
+                    <button type="button" onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-red-500 transition-colors p-1">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                 </div>
+                 <div className="flex gap-3 overflow-x-auto custom-scrollbar pb-2 pt-1">
+                    {managers.filter(m => m.id !== excludeId).map(m => (
+                       <div key={m.id} onClick={() => { onSelect(m.id); setIsOpen(false); }} className="shrink-0 flex flex-col items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform w-16">
+                          {m.teamLogo ? (
+                             <img src={m.teamLogo} className="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-transparent hover:ring-indigo-500" />
+                          ) : (
+                             <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-500 text-sm shadow-sm ring-2 ring-transparent hover:ring-indigo-500">
+                                {(m.teamName || m.name || 'T').charAt(0)}
+                             </div>
+                          )}
+                          <span className="text-[9px] font-bold text-slate-700 dark:text-slate-300 truncate w-full text-center">{m.teamName || m.name}</span>
+                       </div>
+                    ))}
+                 </div>
+              </div>
+           )}
+        </div>
+     );
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="mb-4 p-4 md:p-6 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-xl space-y-4">
+      <div className="flex flex-col md:flex-row gap-3 relative">
+        <TeamPicker selectedId={teamAId} onSelect={setTeamAId} label="Team A" excludeId={teamBId} />
+        <span className="self-center font-bold text-slate-400 text-xs hidden md:block px-2">VS</span>
+        <TeamPicker selectedId={teamBId} onSelect={setTeamBId} label="Team B" excludeId={teamAId} />
+      </div>
+      <div className="flex flex-col md:flex-row gap-3">
+        <input name="date" type="datetime-local" defaultValue={fixture?.date || ''} required className="flex-1 bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 outline-none" />
+        <input name="venue" type="text" defaultValue={fixture?.venue || ''} placeholder="Venue" className="flex-1 bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 outline-none" />
+      </div>
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex gap-2 flex-1">
+          {['upcoming', 'live', 'completed'].map(s => (
+            <button 
+              key={s} 
+              type="button"
+              onClick={() => setStatus(s)}
+              className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border transition-all ${
+                status === s 
+                  ? (s === 'live' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800') 
+                  : 'bg-transparent text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+               {s} {s === 'live' && <span className={`inline-block w-1.5 h-1.5 ml-1 rounded-full mb-0.5 ${status === 'live' ? 'bg-red-500 animate-pulse' : 'bg-slate-400'}`}></span>}
+            </button>
+          ))}
+        </div>
+        {status !== 'upcoming' && (
+          <div className="flex gap-3 flex-1">
+            <input name="teamAGoals" type="number" value={teamAGoals} onChange={e => setTeamAGoals(parseInt(e.target.value) || 0)} placeholder="Team A Goals" className="flex-1 w-1/2 bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 outline-none font-black text-center" />
+            <input name="teamBGoals" type="number" value={teamBGoals} onChange={e => setTeamBGoals(parseInt(e.target.value) || 0)} placeholder="Team B Goals" className="flex-1 w-1/2 bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2.5 text-sm focus:border-indigo-500 outline-none font-black text-center" />
+          </div>
+        )}
+      </div>
+      
+      {status !== 'upcoming' && (teamAId || teamBId) && (
+        <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Goal Scorers</p>
+          {events.map((ev, i) => {
+            const isTeamA = ev.teamId === teamAId;
+            const plist = isTeamA ? teamAPlayers : teamBPlayers;
+            return (
+              <div key={ev.id} className="flex flex-col md:flex-row gap-3 items-start md:items-center bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm">
+                <span className="text-[10px] font-black text-slate-400 w-full md:w-16 truncate uppercase tracking-widest">{isTeamA ? 'TEAM A' : 'TEAM B'}</span>
+                
+                {!ev.playerId ? (
+                  <div className="flex-1 flex gap-2 overflow-x-auto custom-scrollbar pb-2 w-full">
+                     {plist.length === 0 && <span className="text-xs text-slate-500">No players available</span>}
+                     {plist.map(p => (
+                        <div key={p.id} onClick={() => handleEventChange(ev.id, 'playerId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
+                           {p.pic ? <img src={p.pic} className="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-transparent hover:ring-indigo-500" title={p.name}/> : <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-transparent hover:ring-indigo-500" title={p.name}>{p.name.charAt(0)}</div>}
+                        </div>
+                     ))}
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center gap-3 cursor-pointer p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 w-full" onClick={() => handleEventChange(ev.id, 'playerId', '')} title="Click to change player">
+                     {(() => {
+                        const p = plist.find(pl => pl.id === ev.playerId);
+                        if (!p) return null;
+                        return (
+                          <>
+                            {p.pic ? <img src={p.pic} className="w-10 h-10 rounded-full object-cover shadow-sm" /> : <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs shadow-sm">{p.name.charAt(0)}</div>}
+                            <span className="text-sm font-bold truncate text-slate-900 dark:text-white">{p.name}</span>
+                          </>
+                        );
+                     })()}
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                   <input type="number" value={ev.minute} onChange={e => handleEventChange(ev.id, 'minute', e.target.value)} placeholder="Min" className="flex-1 md:w-20 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none font-bold" />
+                   <button type="button" onClick={() => handleRemoveEvent(ev.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors">
+                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                   </button>
+                </div>
+              </div>
+            );
+          })}
+          <div className="flex gap-2">
+            {teamAId && <button type="button" onClick={() => handleAddGoal(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ ADD TEAM A GOAL</button>}
+            {teamBId && <button type="button" onClick={() => handleAddGoal(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ ADD TEAM B GOAL</button>}
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-2 pt-2">
+        <button type="button" onClick={onCancel} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-2.5 rounded-lg font-bold text-sm">Cancel</button>
+        <button type="submit" className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-bold text-sm">Save Fixture</button>
+      </div>
+    </form>
+  );
+};
+
 export default function AdminDashboard() {
-  const { players = [], managers = [], socket, auctionSettings, liveAuction, bids = [] } = useAuth();
+  const { players = [], managers = [], socket, auctionSettings, liveAuction, bids = [], fixtures = [] } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   
@@ -32,13 +222,19 @@ export default function AdminDashboard() {
   
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [editingManager, setEditingManager] = useState(null);
+  const [editingFixture, setEditingFixture] = useState(null);
+  const [isAddingFixture, setIsAddingFixture] = useState(false);
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [selectedBidHistoryPlayer, setSelectedBidHistoryPlayer] = useState(null);
   const [deletingPlayer, setDeletingPlayer] = useState(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const [deletingManager, setDeletingManager] = useState(null);
+  const [managerDeleteConfirmText, setManagerDeleteConfirmText] = useState('');
   const [confirmStopAuction, setConfirmStopAuction] = useState(false);
+  const [undoingPenaltyPlayer, setUndoingPenaltyPlayer] = useState(null);
+  const [deletingFixture, setDeletingFixture] = useState(null);
   
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedPicUrl, setUploadedPicUrl] = useState('');
@@ -439,6 +635,18 @@ export default function AdminDashboard() {
     setUploadedPicUrl('');
   };
 
+  const saveFixture = (fixture) => {
+    if (editingFixture?.id) {
+      socket?.emit('editFixture', fixture);
+      showToast('Fixture updated successfully!', 'success');
+    } else {
+      socket?.emit('addFixture', fixture);
+      showToast('Fixture added successfully!', 'success');
+    }
+    setEditingFixture(null);
+    setIsAddingFixture(false);
+  };
+
   return (
     <div className="pb-20 max-w-4xl mx-auto space-y-4">
       
@@ -515,6 +723,12 @@ export default function AdminDashboard() {
           className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'teams' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
         >
           Teams ({managers.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('fixtures')}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'fixtures' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
+        >
+          Fixtures ({fixtures.length})
         </button>
       </div>
 
@@ -671,11 +885,7 @@ export default function AdminDashboard() {
                     )}
                     {p.bannedTeams?.length > 0 && (
                       <button 
-                        onClick={() => {
-                          if(window.confirm(`Undo penalty? This will remove bidding bans from this player.`)) {
-                            socket.emit('removeBan', p.id);
-                          }
-                        }}
+                        onClick={() => setUndoingPenaltyPlayer(p)}
                         className="flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-center"
                         title="Remove Penalty Bans"
                       >
@@ -732,13 +942,62 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-1 shrink-0">
                     <button onClick={() => { setEditingManager(m); setUploadedPicUrl(m.teamLogo || ''); }} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 dark:bg-slate-800 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">EDIT</button>
                     <button onClick={() => {
-                      if(window.confirm(`Are you sure you want to delete ${m.teamName || m.name}? This will unassign any players they have bought.`)) {
-                        socket.emit('deleteManager', m.id);
-                      }
+                      setDeletingManager(m);
+                      setManagerDeleteConfirmText('');
                     }} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-100 dark:bg-red-900/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">DELETE</button>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* FIXTURES TAB */}
+        {activeTab === 'fixtures' && (
+          <div className="p-4 sm:p-6 lg:p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">Fixtures</h2>
+              <button onClick={() => { setEditingFixture(null); setIsAddingFixture(true); }} className="bg-indigo-600 text-white px-4 py-2 text-[10px] uppercase tracking-widest font-black rounded-lg shadow-sm hover:bg-indigo-700 transition-colors">
+                + ADD FIXTURE
+              </button>
+            </div>
+
+            {(isAddingFixture || editingFixture) && (
+              <FixtureForm 
+                fixture={editingFixture} 
+                managers={managers} 
+                players={players} 
+                onSave={saveFixture} 
+                onCancel={() => { setEditingFixture(null); setIsAddingFixture(false); }} 
+              />
+            )}
+
+            <div className="space-y-2">
+              {fixtures.length === 0 && <p className="text-xs text-slate-400 text-center py-4">No fixtures found.</p>}
+              {fixtures.map(f => {
+                const teamA = managers.find(m => m.id === f.teamAId) || { teamName: 'Unknown' };
+                const teamB = managers.find(m => m.id === f.teamBId) || { teamName: 'Unknown' };
+                return (
+                  <div key={f.id} className="p-3 bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                    <div className="flex-1 text-center">
+                      <p className="text-xs font-bold text-slate-500 mb-1">{f.date ? new Date(f.date).toLocaleString() : 'TBD'} • {f.venue}</p>
+                      <div className="flex items-center justify-center gap-4">
+                        <span className="font-bold text-sm text-slate-900 dark:text-white">{teamA.teamName || teamA.name}</span>
+                        <span className="px-2 py-1 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white rounded font-black text-xs">{f.status === 'completed' ? `${f.teamAGoals} - ${f.teamBGoals}` : 'VS'}</span>
+                        <span className="font-bold text-sm text-slate-900 dark:text-white">{teamB.teamName || teamB.name}</span>
+                      </div>
+                      <p className={`text-[10px] mt-1 uppercase font-bold flex items-center justify-center gap-1 ${f.status === 'live' ? 'text-red-500' : 'text-indigo-500'}`}>
+                        {f.status === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>}
+                        {f.status}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <button onClick={() => { setEditingFixture(f); setIsAddingFixture(true); }} className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 dark:bg-slate-800 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">EDIT</button>
+                      <button onClick={() => setDeletingFixture(f)} className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-100 dark:bg-red-900/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">DEL</button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -780,8 +1039,8 @@ export default function AdminDashboard() {
 
       {/* Delete Confirmation Modal */}
       {deletingPlayer && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[300] flex items-end sm:items-center justify-center p-4 bg-black/60">
-          <div className="bg-white dark:bg-[#111] p-5 rounded-t-2xl sm:rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-[#111] p-5 rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30">
              <h3 className="font-black text-lg mb-1 text-slate-900 dark:text-white">Delete Player</h3>
              <p className="text-xs font-bold text-slate-500 mb-6">Are you sure you want to delete <span className="text-red-500">{deletingPlayer.name}</span>?</p>
              
@@ -798,8 +1057,8 @@ export default function AdminDashboard() {
 
       {/* Delete All Confirmation Modal */}
       {confirmDeleteAll && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[400] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-[#111] p-5 rounded-t-2xl sm:rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30 shadow-2xl">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111] p-5 rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30 shadow-2xl">
              <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-3 text-2xl font-black">
                !
              </div>
@@ -828,10 +1087,45 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* Delete Manager Modal */}
+      {deletingManager && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111] p-5 rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30 shadow-2xl">
+             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-3 text-2xl font-black">
+               !
+             </div>
+             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">Delete Team?</h3>
+             <p className="text-sm font-bold text-slate-500 mb-4">
+                Are you sure you want to delete <span className="text-red-500">{deletingManager.teamName || deletingManager.name}</span>? This will unassign any players they have bought. Type <span className="text-red-500">confirm</span> to execute.
+             </p>
+             
+             <input 
+                type="text" 
+                value={managerDeleteConfirmText}
+                onChange={e => setManagerDeleteConfirmText(e.target.value)}
+                placeholder='confirm'
+                className="w-full bg-slate-50 dark:bg-[#161618] border border-red-200 dark:border-red-900/30 rounded-lg px-4 py-2.5 text-sm focus:border-red-500 outline-none text-center mb-4 text-red-500 font-bold uppercase tracking-widest"
+             />
+             
+             <div className="flex gap-3">
+                <button onClick={() => { setDeletingManager(null); setManagerDeleteConfirmText(''); }} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold">Cancel</button>
+                <button 
+                  onClick={() => {
+                     socket.emit('deleteManager', deletingManager.id);
+                     setDeletingManager(null);
+                  }} 
+                  disabled={managerDeleteConfirmText.toLowerCase() !== 'confirm'}
+                  className="flex-1 py-3 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 disabled:grayscale"
+                >Confirm Delete</button>
+             </div>
+          </div>
+        </div>
+      )}
+
       {/* Stop Auction Confirmation Modal */}
       {confirmStopAuction && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[400] flex items-end sm:items-center justify-center p-4 bg-black/60">
-          <div className="bg-white dark:bg-[#111] p-5 rounded-t-2xl sm:rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30 shadow-2xl">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-[#111] p-5 rounded-2xl w-full max-w-sm border-t sm:border border-red-200 dark:border-red-900/30 shadow-2xl">
              <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-3 text-2xl font-black">
                !
              </div>
@@ -849,6 +1143,56 @@ export default function AdminDashboard() {
                   }} 
                   className="flex-1 py-3.5 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-sm"
                 >Confirm & Sell</button>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Undo Penalty Modal */}
+      {undoingPenaltyPlayer && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-[#111] p-5 rounded-2xl w-full max-w-sm border border-slate-200 dark:border-slate-800 shadow-2xl">
+             <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 rounded-full flex items-center justify-center mb-3 text-2xl font-black">
+               !
+             </div>
+             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">Undo Penalty?</h3>
+             <p className="text-sm font-bold text-slate-500 mb-6">
+                This will remove the penalty and bidding bans from <span className="text-indigo-500">{undoingPenaltyPlayer.name}</span>, returning them to the unsold pool.
+             </p>
+             <div className="flex gap-3">
+                <button onClick={() => setUndoingPenaltyPlayer(null)} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold">Cancel</button>
+                <button 
+                  onClick={() => {
+                     socket.emit('removeBan', undoingPenaltyPlayer.id);
+                     setUndoingPenaltyPlayer(null);
+                  }} 
+                  className="flex-1 py-3 font-bold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all shadow-sm"
+                >Undo Penalty</button>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Fixture Modal */}
+      {deletingFixture && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-[#111] p-5 rounded-2xl w-full max-w-sm border border-red-200 dark:border-red-900/30 shadow-2xl">
+             <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full flex items-center justify-center mb-3 text-2xl font-black">
+               !
+             </div>
+             <h3 className="font-black text-xl mb-2 text-slate-900 dark:text-white">Delete Fixture?</h3>
+             <p className="text-sm font-bold text-slate-500 mb-6">
+                Are you sure you want to permanently delete this fixture? This action cannot be undone.
+             </p>
+             <div className="flex gap-3">
+                <button onClick={() => setDeletingFixture(null)} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold">Cancel</button>
+                <button 
+                  onClick={() => {
+                     socket.emit('deleteFixture', deletingFixture.id);
+                     setDeletingFixture(null);
+                  }} 
+                  className="flex-1 py-3 font-bold rounded-xl text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all shadow-sm"
+                >Delete Fixture</button>
              </div>
           </div>
         </div>

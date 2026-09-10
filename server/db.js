@@ -57,6 +57,20 @@ async function initDB() {
         type TEXT,
         "timestamp" TIMESTAMPTZ DEFAULT NOW()
       );
+      
+      CREATE TABLE IF NOT EXISTS fixtures (
+        id TEXT PRIMARY KEY,
+        "teamAId" TEXT,
+        "teamBId" TEXT,
+        date TEXT,
+        venue TEXT,
+        status TEXT,
+        "teamAGoals" INTEGER,
+        "teamBGoals" INTEGER,
+        events JSONB DEFAULT '[]'::jsonb
+      );
+      
+      ALTER TABLE fixtures ADD COLUMN IF NOT EXISTS events JSONB DEFAULT '[]'::jsonb;
     `);
     console.log("Supabase Postgres DB initialized");
   } finally {
@@ -72,13 +86,15 @@ async function loadState(defaultSettings) {
     const settingsRes = await client.query('SELECT data FROM settings WHERE id = 1');
     const bidsRes = await client.query('SELECT * FROM bids ORDER BY timestamp DESC');
     const logsRes = await client.query('SELECT * FROM system_logs ORDER BY timestamp DESC LIMIT 100');
+    const fixturesRes = await client.query('SELECT * FROM fixtures ORDER BY date ASC');
     
     return {
       players: playersRes.rows,
       managers: managersRes.rows,
       settings: settingsRes.rows.length > 0 ? settingsRes.rows[0].data : defaultSettings,
       bids: bidsRes.rows,
-      logs: logsRes.rows
+      logs: logsRes.rows,
+      fixtures: fixturesRes.rows
     };
   } finally {
     client.release();
@@ -130,6 +146,7 @@ async function clearSystem() {
    await pool.query('DELETE FROM managers');
    await pool.query('DELETE FROM bids');
    await pool.query('DELETE FROM system_logs');
+   await pool.query('DELETE FROM fixtures');
 }
 
 async function clearLogsDB() {
@@ -162,6 +179,26 @@ async function saveLog(message, type) {
   }
 }
 
+async function saveFixture(fixture) {
+  await pool.query(`
+    INSERT INTO fixtures (id, "teamAId", "teamBId", date, venue, status, "teamAGoals", "teamBGoals", events)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    ON CONFLICT (id) DO UPDATE SET
+      "teamAId" = EXCLUDED."teamAId",
+      "teamBId" = EXCLUDED."teamBId",
+      date = EXCLUDED.date,
+      venue = EXCLUDED.venue,
+      status = EXCLUDED.status,
+      "teamAGoals" = EXCLUDED."teamAGoals",
+      "teamBGoals" = EXCLUDED."teamBGoals",
+      events = EXCLUDED.events
+  `, [fixture.id, fixture.teamAId, fixture.teamBId, fixture.date, fixture.venue, fixture.status, fixture.teamAGoals, fixture.teamBGoals, JSON.stringify(fixture.events || [])]);
+}
+
+async function deleteFixtureDB(id) {
+  await pool.query('DELETE FROM fixtures WHERE id = $1', [id]);
+}
+
 module.exports = {
-  initDB, loadState, savePlayer, deletePlayerDB, deleteAllPlayersDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog
+  initDB, loadState, savePlayer, deletePlayerDB, deleteAllPlayersDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog, saveFixture, deleteFixtureDB
 };

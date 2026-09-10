@@ -4,7 +4,7 @@ import { useAuth } from '../AuthContext';
 import Countdown from '../components/Countdown';
 
 export default function ManagerDashboard() {
-  const { user, managers, players, bids, auctionSettings, socket } = useAuth();
+  const { user, managers, players, bids, auctionSettings, socket, fixtures } = useAuth();
   
   const [activeTab, setActiveTab] = useState('squad');
   const [confirmClear, setConfirmClear] = useState(false);
@@ -98,6 +98,11 @@ export default function ManagerDashboard() {
          <button onClick={() => setActiveTab('rivals')} className={`flex-1 min-w-[70px] px-3 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all text-center ${activeTab === 'rivals' ? 'bg-white dark:bg-[#1a1a1c] shadow-sm text-rose-600 dark:text-rose-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}>
             Rivals
          </button>
+         {auctionSettings?.appMode === 'tournament' && (
+           <button onClick={() => setActiveTab('fixtures')} className={`flex-1 min-w-[70px] px-3 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all text-center ${activeTab === 'fixtures' ? 'bg-white dark:bg-[#1a1a1c] shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}>
+              Fixtures
+           </button>
+         )}
          <button onClick={() => setActiveTab('history')} className={`flex-1 min-w-[70px] px-3 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all text-center ${activeTab === 'history' ? 'bg-white dark:bg-[#1a1a1c] shadow-sm text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}>
             Bids
          </button>
@@ -341,6 +346,68 @@ export default function ManagerDashboard() {
                 )}
               </div>
            </>
+        )}
+
+        {activeTab === 'fixtures' && auctionSettings?.appMode === 'tournament' && (
+           <div className="space-y-6 animate-fade-in">
+              {/* My Next Match */}
+              {fixtures.some(f => (f.teamAId === user.id || f.teamBId === user.id) && f.status === 'upcoming') && (() => {
+                 const myNextMatch = fixtures.find(f => (f.teamAId === user.id || f.teamBId === user.id) && f.status === 'upcoming');
+                 const oppId = myNextMatch.teamAId === user.id ? myNextMatch.teamBId : myNextMatch.teamAId;
+                 const oppTeam = managers.find(m => m.id === oppId);
+                 return (
+                    <div className="bg-indigo-600 dark:bg-indigo-900/40 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden">
+                       <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 mb-4">Your Next Match</p>
+                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
+                         <div className="text-sm font-black text-indigo-100 uppercase tracking-widest opacity-80 shrink-0">VS</div>
+                         <div className="flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl flex-1 border border-white/5 shadow-sm">
+                           {oppTeam?.teamLogo ? <img src={oppTeam.teamLogo} className="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white/20" /> : <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-black text-sm ring-2 ring-white/20">{oppTeam?.teamName?.charAt(0) || '?'}</div>}
+                           <span className="font-black text-sm sm:text-base">{oppTeam?.teamName || 'TBD'}</span>
+                         </div>
+                       </div>
+                       <p className="text-[11px] font-bold text-indigo-200">{new Date(myNextMatch.date).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {myNextMatch.venue || 'TBD'}</p>
+                    </div>
+                 );
+              })()}
+
+              {/* All Fixtures List */}
+              <div className="bg-white dark:bg-[#111] rounded-2xl border border-slate-200 dark:border-slate-800 p-1 divide-y divide-slate-100 dark:divide-slate-800/80 shadow-sm">
+                 <div className="p-4 px-5">
+                    <h2 className="font-black text-sm uppercase tracking-widest text-slate-400">All Fixtures</h2>
+                 </div>
+                 {fixtures.map(f => {
+                    const tA = managers.find(m => m.id === f.teamAId);
+                    const tB = managers.find(m => m.id === f.teamBId);
+                    const isMyMatch = f.teamAId === user.id || f.teamBId === user.id;
+                    return (
+                       <div key={f.id} className={`p-4 flex flex-col sm:flex-row gap-3 items-center justify-between transition-colors ${isMyMatch ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : 'hover:bg-slate-50 dark:hover:bg-[#161618]'}`}>
+                          <div className="flex items-center gap-3 flex-1 sm:justify-end w-full sm:w-auto justify-center">
+                             <span className={`font-bold text-[13px] ${isMyMatch && f.teamAId === user.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}>{tA?.teamName || 'TBD'}</span>
+                             {tA?.teamLogo ? <img src={tA.teamLogo} className="w-8 h-8 rounded-full object-cover shrink-0" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500 shrink-0">{tA?.teamName?.charAt(0) || 'A'}</div>}
+                          </div>
+                          
+                          <div className="flex flex-col items-center justify-center shrink-0 w-24">
+                             {f.status === 'completed' ? (
+                                <div className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-3 py-1 rounded font-black tracking-widest text-sm shadow-sm">{f.teamAGoals ?? 0} - {f.teamBGoals ?? 0}</div>
+                             ) : f.status === 'live' ? (
+                                <div className="bg-red-50 dark:bg-red-900/20 text-red-500 px-3 py-1 rounded flex items-center gap-1.5"><span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span><span className="text-[10px] font-black uppercase tracking-widest">Live</span></div>
+                             ) : (
+                                <div className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded uppercase tracking-widest">VS</div>
+                             )}
+                          </div>
+
+                          <div className="flex items-center gap-3 flex-1 sm:justify-start w-full sm:w-auto justify-center flex-row-reverse sm:flex-row">
+                             {tB?.teamLogo ? <img src={tB.teamLogo} className="w-8 h-8 rounded-full object-cover shrink-0" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500 shrink-0">{tB?.teamName?.charAt(0) || 'B'}</div>}
+                             <span className={`font-bold text-[13px] ${isMyMatch && f.teamBId === user.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}>{tB?.teamName || 'TBD'}</span>
+                          </div>
+                       </div>
+                    );
+                 })}
+                 {fixtures.length === 0 && (
+                    <div className="p-8 text-center text-slate-400 text-sm font-bold">No fixtures scheduled.</div>
+                 )}
+              </div>
+           </div>
         )}
       </div>
     </div>

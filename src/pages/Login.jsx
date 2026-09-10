@@ -5,9 +5,18 @@ import { useToast } from '../ToastContext';
 import Countdown from '../components/Countdown';
 
 export default function Login() {
-  const { login, managers, players, auctionSettings } = useAuth();
+  const { login, managers, players, auctionSettings, fixtures = [] } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  const hasLive = fixtures.some(f => f.status === 'live');
+  const nextGame = fixtures.find(f => f.status === 'upcoming');
+  
+  const totalMatchesPlayed = fixtures.filter(f => f.status === 'completed').length;
+  const totalGoals = fixtures.filter(f => f.status === 'completed').reduce((sum, f) => sum + (f.teamAGoals || 0) + (f.teamBGoals || 0), 0);
+  
+  const totalPlayersSold = players.filter(p => p.status === 'sold').length;
+  const highestBid = players.filter(p => p.status === 'sold').reduce((max, p) => Math.max(max, p.soldPrice || 0), 0);
   
   const [roleSelection, setRoleSelection] = useState('manager'); // 'manager', 'admin', 'podium'
   const [username, setUsername] = useState('');
@@ -46,7 +55,7 @@ export default function Login() {
 
 
   return (
-    <div className="h-[100dvh] bg-slate-50 dark:bg-[#030303] flex flex-col items-center relative font-sans w-full overflow-hidden pt-4 pb-6 px-4">
+    <div className="min-h-[100dvh] bg-slate-50 dark:bg-[#030303] flex flex-col items-center relative font-sans w-full overflow-y-auto custom-scrollbar overflow-x-hidden pt-4 pb-6 px-4">
       <style>{`
         @keyframes gradient-x {
           0% { background-position: 0% 50%; }
@@ -136,12 +145,26 @@ export default function Login() {
       </div>
       
       {/* Hero Section */}
-      <div className="relative z-10 w-full max-w-5xl text-center flex flex-col items-center my-auto">
+      <div className="relative z-10 w-full max-w-5xl text-center flex flex-col items-center justify-center min-h-[85vh] py-12">
          
-         <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded border border-slate-300 dark:border-white/20 bg-slate-100/50 dark:bg-white/5 animate-slide-up" style={{ animationDelay: '100ms' }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,1)]"></span>
-            <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Live Transfer Window</span>
-         </div>
+         {auctionSettings?.appMode === 'tournament' ? (
+            hasLive ? (
+              <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded border border-red-300 dark:border-red-500/20 bg-red-100/50 dark:bg-red-500/10 animate-slide-up" style={{ animationDelay: '100ms' }}>
+                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,1)]"></span>
+                 <span className="text-[10px] font-semibold text-red-700 dark:text-red-400 uppercase tracking-widest">Live Match in Progress</span>
+              </div>
+            ) : (
+              <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded border border-indigo-300 dark:border-indigo-500/20 bg-indigo-100/50 dark:bg-indigo-500/10 animate-slide-up" style={{ animationDelay: '100ms' }}>
+                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,1)]"></span>
+                 <span className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest">Tournament Mode</span>
+              </div>
+            )
+         ) : (
+            <div className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded border border-slate-300 dark:border-white/20 bg-slate-100/50 dark:bg-white/5 animate-slide-up" style={{ animationDelay: '100ms' }}>
+               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,1)]"></span>
+               <span className="text-[10px] font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Live Transfer Window</span>
+            </div>
+         )}
          
          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white mb-4 tracking-tight leading-[1.1] animate-slide-up" style={{ animationDelay: '250ms' }}>
            ESD Premier League <br />
@@ -154,56 +177,87 @@ export default function Login() {
            The ultimate live football auction platform. Outsmart rival managers, secure top talents, and build a team destined for glory.
          </p>
          
-         {auctionSettings?.auctionStartDate && (
-            <Countdown targetDate={auctionSettings.auctionStartDate} />
+         {auctionSettings?.appMode === 'tournament' ? (
+           (() => {
+             if (!nextGame || !nextGame.date) return null;
+             const tA = managers.find(m => m.id === nextGame.teamAId);
+             const tB = managers.find(m => m.id === nextGame.teamBId);
+             return (
+               <div className="mb-6 animate-slide-up w-full max-w-md mx-auto px-4" style={{ animationDelay: '450ms' }}>
+                 <div className="bg-white/70 dark:bg-[#111]/70 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-slate-200/50 dark:border-slate-800/50 shadow-xl relative overflow-hidden flex flex-col items-center">
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/5 dark:to-purple-500/5 pointer-events-none"></div>
+                    
+                    <div className="w-full flex items-center justify-between gap-3 relative z-10 mb-2">
+                      <div className="flex items-center gap-2 flex-1 justify-end">
+                        <span className="font-black text-xs sm:text-sm leading-tight text-slate-900 dark:text-white text-right break-words">{tA?.teamName || 'TBD'}</span>
+                        {tA?.teamLogo ? <img src={tA.teamLogo} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" /> : <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-400 text-xs shadow-sm ring-2 ring-white dark:ring-[#111]">{tA?.teamName?.charAt(0) || 'A'}</div>}
+                      </div>
+                      
+                      <div className="shrink-0 flex flex-col items-center px-1">
+                        <span className="text-[10px] font-black text-slate-400 bg-slate-200/80 dark:bg-slate-800/80 px-2 py-0.5 rounded shadow-sm">VS</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 flex-1 justify-start">
+                        {tB?.teamLogo ? <img src={tB.teamLogo} className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" /> : <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-400 text-xs shadow-sm ring-2 ring-white dark:ring-[#111]">{tB?.teamName?.charAt(0) || 'B'}</div>}
+                        <span className="font-black text-xs sm:text-sm leading-tight text-slate-900 dark:text-white text-left break-words">{tB?.teamName || 'TBD'}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="relative z-10 w-full flex flex-col items-center bg-black/5 dark:bg-white/5 rounded-xl pt-1 pb-2 border border-black/5 dark:border-white/5">
+                       <Countdown targetDate={nextGame.date} compact={true} />
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{new Date(nextGame.date).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {nextGame.venue || 'TBD'}</p>
+                    </div>
+                 </div>
+               </div>
+             );
+           })()
+         ) : (
+           auctionSettings?.auctionStartDate && (
+             <div className="mb-8 animate-slide-up w-full max-w-lg mx-auto" style={{ animationDelay: '450ms' }}>
+                <Countdown targetDate={auctionSettings.auctionStartDate} />
+             </div>
+           )
          )}
          
-         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up mt-2" style={{ animationDelay: '550ms' }}>
+         <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 animate-slide-up mt-2 w-full max-w-sm sm:max-w-none mx-auto px-4 sm:px-0" style={{ animationDelay: '550ms' }}>
            <button 
-             onClick={() => navigate('/auction')}
-             className="px-8 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg text-sm sm:text-base hover:bg-slate-800 dark:hover:bg-slate-200 active:scale-95 transition-all shadow-sm w-full sm:w-auto"
+             onClick={() => navigate(auctionSettings?.appMode === 'tournament' ? '/tournament' : '/auction')}
+             className="flex-1 sm:flex-none sm:px-8 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-lg text-xs sm:text-base hover:bg-slate-800 dark:hover:bg-slate-200 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2"
            >
-             Watch Live
+             {hasLive && <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>}
+             {auctionSettings?.appMode === 'tournament' ? 'Enter Tournament' : 'Watch Live'}
            </button>
            
            <button 
              onClick={() => setIsLoginOpen(true)}
-             className="px-8 py-3.5 bg-transparent border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white font-bold rounded-lg text-sm sm:text-base hover:bg-slate-100 dark:hover:bg-white/10 active:scale-95 transition-all w-full sm:w-auto"
+             className="flex-1 sm:flex-none sm:px-8 py-3.5 bg-transparent border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white font-bold rounded-lg text-xs sm:text-base hover:bg-slate-100 dark:hover:bg-white/10 active:scale-95 transition-all"
            >
              Login
            </button>
          </div>
          
          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 w-full animate-slide-up" style={{ animationDelay: '700ms' }}>
-            <div className="p-5 border-t border-slate-200 dark:border-white/10 text-center">
-              <p className="text-3xl font-black text-slate-900 dark:text-white mb-1">
-                {managers?.length || 0}
-              </p>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Franchises</p>
-            </div>
-            
-            <div className="p-5 border-t border-slate-200 dark:border-white/10 text-center">
-              <p className="text-3xl font-black text-slate-900 dark:text-white mb-1">
-                {players?.length || 0}
-              </p>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Players in Pool</p>
-            </div>
-
-            <div className="p-5 border-t border-slate-200 dark:border-white/10 text-center">
-              <p className="text-3xl font-black text-slate-900 dark:text-white mb-1">
-                {players?.filter(p => p.status === 'sold').length || 0}
-              </p>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Players Sold</p>
-            </div>
-
-            <div className="p-5 border-t border-slate-200 dark:border-white/10 text-center">
-              <p className="text-3xl font-black text-slate-900 dark:text-white mb-1">
-                {((managers?.length || 0) * (auctionSettings?.defaultManagerBudget || 10000)).toLocaleString()}
-              </p>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Global Purse</p>
-            </div>
+           <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-white/10 hover:scale-105 transition-transform duration-300">
+             <div className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 mb-1">{auctionSettings?.appMode === 'tournament' ? totalMatchesPlayed : totalPlayersSold}</div>
+             <div className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{auctionSettings?.appMode === 'tournament' ? 'Matches Played' : 'Players Sold'}</div>
+           </div>
+           <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-white/10 hover:scale-105 transition-transform duration-300">
+             <div className="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 mb-1">{auctionSettings?.appMode === 'tournament' ? totalGoals : highestBid.toLocaleString()}</div>
+             <div className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{auctionSettings?.appMode === 'tournament' ? 'Total Goals' : 'Highest Bid'}</div>
+           </div>
+           <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-white/10 hover:scale-105 transition-transform duration-300">
+             <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-1">{managers.length}</div>
+             <div className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Active Franchises</div>
+           </div>
+           <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/50 dark:border-white/10 hover:scale-105 transition-transform duration-300">
+             <div className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 mb-1">{players.length}</div>
+             <div className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Registered Players</div>
+           </div>
          </div>
       </div>
+      
+      {/* Spacer to allow scrolling to the footer easily */}
+      <div className="h-10 w-full shrink-0"></div>
 
       {/* Login Modal - Premium Split Layout */}
       {isLoginOpen && (

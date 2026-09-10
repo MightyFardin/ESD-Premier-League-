@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const { initDB, loadState, savePlayer, deletePlayerDB, deleteAllPlayersDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog } = require('./db');
+const { initDB, loadState, savePlayer, deletePlayerDB, deleteAllPlayersDB, saveManager, deleteManagerDB, saveSettings, clearSystem, clearLogsDB, saveBid, saveLog, saveFixture, deleteFixtureDB } = require('./db');
 
 const app = express();
 app.use(cors());
@@ -50,7 +50,8 @@ let state = {
     timerRemaining: 0
   },
   bids: [],
-  logs: []
+  logs: [],
+  fixtures: []
 };
 
 function addLog(message, type) {
@@ -81,7 +82,7 @@ function broadcastState() {
     ...state,
     managers: state.managers.map(m => {
       const spent = state.players.filter(p => p.status === 'sold' && p.teamId === m.id).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
-      return { ...m, budget: state.settings.defaultManagerBudget - spent };
+      return { ...m, budget: state.settings.defaultManagerBudget + (Number(m.bonusBudget) || 0) - spent };
     })
   };
   io.emit('stateUpdate', processedState);
@@ -96,6 +97,7 @@ async function startServer() {
     state.settings = dbState.settings || defaultSettings;
     state.bids = dbState.bids || [];
     state.logs = dbState.logs || [];
+    state.fixtures = dbState.fixtures || [];
     console.log("Successfully connected to Supabase Postgres and loaded state.");
   } catch (err) {
     console.error("WARNING: Failed to connect to Supabase DB.", err.message);
@@ -141,7 +143,7 @@ async function startServer() {
           
           if (manager) {
               const spent = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(teamId)).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
-              const remainingBudget = state.settings.defaultManagerBudget - spent;
+              const remainingBudget = state.settings.defaultManagerBudget + (Number(manager.bonusBudget) || 0) - spent;
               
               const thisManagerCount = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(teamId)).length;
               if (thisManagerCount >= state.settings.maxSquadSize) {
@@ -210,7 +212,7 @@ async function startServer() {
     socket.on('createManager', (manager) => {
       const exists = state.managers.find(m => m.username === manager.username);
       if (!exists) {
-        const newManager = { ...manager, budget: state.settings.defaultManagerBudget };
+        const newManager = { ...manager, bonusBudget: 0, budget: state.settings.defaultManagerBudget };
         state.managers.push(newManager);
         broadcastState();
         saveManager(newManager).catch(e => console.error(e));
@@ -218,9 +220,13 @@ async function startServer() {
     });
 
     socket.on('editManager', (updatedManager) => {
-      state.managers = state.managers.map(m => m.id === updatedManager.id ? updatedManager : m);
+      const spent = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(updatedManager.id)).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
+      const newBonus = Number(updatedManager.budget) + spent - state.settings.defaultManagerBudget;
+      
+      const managerToSave = { ...updatedManager, bonusBudget: newBonus };
+      state.managers = state.managers.map(m => m.id === updatedManager.id ? managerToSave : m);
       broadcastState();
-      saveManager(updatedManager).catch(e => console.error(e));
+      saveManager(managerToSave).catch(e => console.error(e));
     });
 
     socket.on('deleteManager', (managerId) => {
@@ -229,6 +235,25 @@ async function startServer() {
       state.players = state.players.map(p => p.teamId === managerId ? { ...p, status: 'unsold', teamId: null, soldPrice: null } : p);
       broadcastState();
       deleteManagerDB(managerId).catch(e => console.error(e));
+    });
+
+    // Fixture Actions
+    socket.on('addFixture', (fixture) => {
+      state.fixtures.push(fixture);
+      broadcastState();
+      saveFixture(fixture).catch(e => console.error(e));
+    });
+
+    socket.on('editFixture', (updatedFixture) => {
+      state.fixtures = state.fixtures.map(f => f.id === updatedFixture.id ? updatedFixture : f);
+      broadcastState();
+      saveFixture(updatedFixture).catch(e => console.error(e));
+    });
+
+    socket.on('deleteFixture', (fixtureId) => {
+      state.fixtures = state.fixtures.filter(f => f.id !== fixtureId);
+      broadcastState();
+      deleteFixtureDB(fixtureId).catch(e => console.error(e));
     });
 
     // Auction Actions
@@ -287,7 +312,7 @@ async function startServer() {
 
         // Check if the winning manager just ran out of budget
         const spent = state.players.filter(p => p.status === 'sold' && p.teamId === state.liveAuction.highestBidderId).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
-        const remainingBudget = state.settings.defaultManagerBudget - spent;
+        const remainingBudget = state.settings.defaultManagerBudget + (Number(winningManager?.bonusBudget) || 0) - spent;
 
         const thisManagerCount = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(state.liveAuction.highestBidderId)).length;
         const totalPlayers = state.players.length;
@@ -353,7 +378,7 @@ async function startServer() {
       const manager = state.managers.find(m => String(m.id) === String(managerId));
       if (!manager) console.log(`[placeBid] manager not found for id ${managerId}! available managers:`, state.managers.map(m => m.id));
       const spent = state.players.filter(p => p.status === 'sold' && String(p.teamId) === String(managerId)).reduce((sum, p) => sum + (p.soldPrice || 0), 0);
-      const remainingBudget = state.settings.defaultManagerBudget - spent;
+      const remainingBudget = state.settings.defaultManagerBudget + (Number(manager.bonusBudget) || 0) - spent;
       
       const isFirstBid = state.liveAuction.highestBidderId === null;
       const isValidAmount = isFirstBid ? amount >= state.liveAuction.currentBid : amount > state.liveAuction.currentBid;
@@ -574,7 +599,8 @@ async function startServer() {
            settings: state.settings,
            liveAuction: { status: 'idle', currentPlayerId: null, currentBid: 0, currentIncrement: 10, highestBidderId: null, history: [], passedTeams: [], auctionEndAt: null, timerPaused: false, timerRemaining: 0 },
            bids: [],
-           logs: []
+           logs: [],
+           fixtures: []
         };
         broadcastState();
         clearSystem().catch(e => console.error(e));

@@ -765,7 +765,7 @@ export default function LiveAuction() {
                 </button>
              </div>
           </div>
-        </div>,
+         </div>,
         document.body
       )}
     </div>
