@@ -155,39 +155,78 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
             const isTeamA = ev.teamId === teamAId;
             const plist = isTeamA ? teamAPlayers : teamBPlayers;
             return (
-              <div key={ev.id} className="flex flex-col md:flex-row gap-3 items-start md:items-center bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm">
-                <span className="text-[10px] font-black text-slate-400 w-full md:w-16 truncate uppercase tracking-widest">{isTeamA ? 'TEAM A' : 'TEAM B'}</span>
-                
-                {!ev.playerId ? (
-                  <div className="flex-1 flex gap-2 overflow-x-auto custom-scrollbar pb-2 w-full">
-                     {plist.length === 0 && <span className="text-xs text-slate-500">No players available</span>}
-                     {plist.map(p => (
-                        <div key={p.id} onClick={() => handleEventChange(ev.id, 'playerId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
-                           {p.pic ? <img src={p.pic} className="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-transparent hover:ring-indigo-500" title={p.name}/> : <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-transparent hover:ring-indigo-500" title={p.name}>{p.name.charAt(0)}</div>}
-                        </div>
-                     ))}
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center gap-3 cursor-pointer p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 w-full" onClick={() => handleEventChange(ev.id, 'playerId', '')} title="Click to change player">
-                     {(() => {
-                        const p = plist.find(pl => pl.id === ev.playerId);
-                        if (!p) return null;
-                        return (
-                          <>
-                            {p.pic ? <img src={p.pic} className="w-10 h-10 rounded-full object-cover shadow-sm" /> : <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs shadow-sm">{p.name.charAt(0)}</div>}
-                            <span className="text-sm font-bold truncate text-slate-900 dark:text-white">{p.name}</span>
-                          </>
-                        );
-                     })()}
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                   <input type="number" value={ev.minute} onChange={e => handleEventChange(ev.id, 'minute', e.target.value)} placeholder="Min" className="flex-1 md:w-20 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none font-bold" />
-                   <button type="button" onClick={() => handleRemoveEvent(ev.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors">
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                   </button>
-                </div>
+              <div key={ev.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm gap-3">
+                 <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isTeamA ? 'TEAM A GOAL' : 'TEAM B GOAL'}</span>
+                    <button type="button" onClick={() => handleRemoveEvent(ev.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-colors">
+                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                 </div>
+                 
+                 <div className="flex flex-col md:flex-row gap-3">
+                    <div className="flex-1 space-y-1">
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Scorer</p>
+                       {!ev.playerId ? (
+                         <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
+                            {plist.length === 0 && <span className="text-xs text-slate-500">No players</span>}
+                            {plist.map(p => (
+                               <div key={p.id} onClick={() => handleEventChange(ev.id, 'playerId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
+                                  {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-indigo-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-indigo-500" title={p.name}>{p.name.charAt(0)}</div>}
+                               </div>
+                            ))}
+                         </div>
+                       ) : (
+                         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => handleEventChange(ev.id, 'playerId', '')} title="Click to change scorer">
+                            {(() => {
+                               const p = plist.find(pl => pl.id === ev.playerId);
+                               if (!p) return null;
+                               return (
+                                 <>
+                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   <span className="text-xs font-bold text-slate-900 dark:text-white">{p.name}</span>
+                                 </>
+                               );
+                            })()}
+                         </div>
+                       )}
+                    </div>
+                    
+                    <div className="flex-1 space-y-1">
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Assist (Optional)</p>
+                       {!ev.assistId ? (
+                         <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
+                            <div onClick={() => handleEventChange(ev.id, 'assistId', 'none')} className="shrink-0 cursor-pointer w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-400 hover:text-indigo-500 hover:border-indigo-500" title="No assist">X</div>
+                            {plist.filter(p => p.id !== ev.playerId).map(p => (
+                               <div key={p.id} onClick={() => handleEventChange(ev.id, 'assistId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
+                                  {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-emerald-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-emerald-500" title={p.name}>{p.name.charAt(0)}</div>}
+                               </div>
+                            ))}
+                         </div>
+                       ) : ev.assistId === 'none' ? (
+                         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => handleEventChange(ev.id, 'assistId', '')} title="Click to change assist">
+                            <span className="text-xs font-bold text-slate-500">None</span>
+                         </div>
+                       ) : (
+                         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => handleEventChange(ev.id, 'assistId', '')} title="Click to change assist">
+                            {(() => {
+                               const p = plist.find(pl => pl.id === ev.assistId);
+                               if (!p) return null;
+                               return (
+                                 <>
+                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   <span className="text-xs font-bold text-slate-900 dark:text-white">{p.name}</span>
+                                 </>
+                               );
+                            })()}
+                         </div>
+                       )}
+                    </div>
+                    
+                    <div className="w-full md:w-20 space-y-1">
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Minute</p>
+                       <input type="number" value={ev.minute} onChange={e => handleEventChange(ev.id, 'minute', e.target.value)} placeholder="Min" className="w-full bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs focus:border-indigo-500 outline-none font-bold" />
+                    </div>
+                 </div>
               </div>
             );
           })}

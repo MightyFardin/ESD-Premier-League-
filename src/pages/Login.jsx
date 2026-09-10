@@ -10,7 +10,9 @@ export default function Login() {
   const navigate = useNavigate();
 
   const hasLive = fixtures.some(f => f.status === 'live');
+  const liveGame = fixtures.find(f => f.status === 'live');
   const nextGame = fixtures.find(f => f.status === 'upcoming');
+  const displayGame = liveGame || nextGame;
   
   const totalMatchesPlayed = fixtures.filter(f => f.status === 'completed').length;
   const totalGoals = fixtures.filter(f => f.status === 'completed').reduce((sum, f) => sum + (f.teamAGoals || 0) + (f.teamBGoals || 0), 0);
@@ -179,9 +181,9 @@ export default function Login() {
          
          {auctionSettings?.appMode === 'tournament' ? (
            (() => {
-             if (!nextGame || !nextGame.date) return null;
-             const tA = managers.find(m => m.id === nextGame.teamAId);
-             const tB = managers.find(m => m.id === nextGame.teamBId);
+             if (!displayGame) return null;
+             const tA = managers.find(m => m.id === displayGame.teamAId);
+             const tB = managers.find(m => m.id === displayGame.teamBId);
              return (
                <div className="mb-6 animate-slide-up w-full max-w-md mx-auto px-4" style={{ animationDelay: '450ms' }}>
                  <div className="bg-white/70 dark:bg-[#111]/70 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-slate-200/50 dark:border-slate-800/50 shadow-xl relative overflow-hidden flex flex-col items-center">
@@ -204,8 +206,20 @@ export default function Login() {
                     </div>
                     
                     <div className="relative z-10 w-full flex flex-col items-center bg-black/5 dark:bg-white/5 rounded-xl pt-1 pb-2 border border-black/5 dark:border-white/5">
-                       <Countdown targetDate={nextGame.date} compact={true} />
-                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{new Date(nextGame.date).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {nextGame.venue || 'TBD'}</p>
+                       {liveGame ? (
+                          <div className="py-2 flex flex-col items-center gap-1 w-full text-center">
+                             <div className="flex items-center gap-2 mb-1 bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full border border-red-200 dark:border-red-800">
+                               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                               <span className="text-xs font-black text-red-600 dark:text-red-400 uppercase tracking-widest drop-shadow-sm leading-none">LIVE</span>
+                             </div>
+                             <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1 drop-shadow-sm">
+                                {displayGame.teamAGoals ?? 0} <span className="text-slate-400 mx-1">-</span> {displayGame.teamBGoals ?? 0}
+                             </div>
+                          </div>
+                       ) : (
+                          <Countdown targetDate={displayGame.date} compact={true} />
+                       )}
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">{displayGame.date ? new Date(displayGame.date).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD'} • {displayGame.venue || 'TBD'}</p>
                     </div>
                  </div>
                </div>

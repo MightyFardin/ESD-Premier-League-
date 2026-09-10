@@ -84,6 +84,57 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
+      {auctionSettings?.appMode === 'tournament' && (
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="bg-white dark:bg-[#111] p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+             <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Top Goal Scorer</p>
+             <p className="font-black text-sm sm:text-lg text-slate-900 dark:text-white truncate">
+               {(() => {
+                  let maxGoals = 0;
+                  let topScorer = null;
+                  myPlayers.forEach(p => {
+                     let goals = 0;
+                     fixtures.forEach(f => {
+                        (f.events || []).forEach(e => {
+                           if (e.type === 'goal' && e.playerId === p.id) goals++;
+                        });
+                     });
+                     if (goals > maxGoals) { maxGoals = goals; topScorer = p; }
+                  });
+                  return maxGoals > 0 ? (
+                     <>{topScorer.name} <span className="text-indigo-600 dark:text-indigo-400 ml-1">({maxGoals})</span></>
+                  ) : (
+                     <span className="text-slate-400">0</span>
+                  );
+               })()}
+             </p>
+          </div>
+          <div className="bg-white dark:bg-[#111] p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+             <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Top Assist Provider</p>
+             <p className="font-black text-sm sm:text-lg text-slate-900 dark:text-white truncate">
+               {(() => {
+                  let maxAssists = 0;
+                  let topAssist = null;
+                  myPlayers.forEach(p => {
+                     let assists = 0;
+                     fixtures.forEach(f => {
+                        (f.events || []).forEach(e => {
+                           if (e.type === 'goal' && e.assistId === p.id) assists++;
+                        });
+                     });
+                     if (assists > maxAssists) { maxAssists = assists; topAssist = p; }
+                  });
+                  return maxAssists > 0 ? (
+                     <>{topAssist.name} <span className="text-emerald-600 dark:text-emerald-400 ml-1">({maxAssists})</span></>
+                  ) : (
+                     <span className="text-slate-400">0</span>
+                  );
+               })()}
+             </p>
+          </div>
+        </div>
+      )}
+
       {/* Wrapping Tabs */}
       <div className="flex flex-wrap bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl w-full gap-1.5 backdrop-blur-sm">
          <button onClick={() => setActiveTab('squad')} className={`flex-1 min-w-[70px] px-3 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all text-center ${activeTab === 'squad' ? 'bg-white dark:bg-[#1a1a1c] shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}>
@@ -375,7 +426,10 @@ export default function ManagerDashboard() {
                  <div className="p-4 px-5">
                     <h2 className="font-black text-sm uppercase tracking-widest text-slate-400">All Fixtures</h2>
                  </div>
-                 {fixtures.map(f => {
+                 {[...fixtures].sort((a, b) => {
+                    const order = { 'live': 1, 'upcoming': 2, 'completed': 3 };
+                    return (order[a.status] || 4) - (order[b.status] || 4);
+                 }).map(f => {
                     const tA = managers.find(m => m.id === f.teamAId);
                     const tB = managers.find(m => m.id === f.teamBId);
                     const isMyMatch = f.teamAId === user.id || f.teamBId === user.id;

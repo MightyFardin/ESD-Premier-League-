@@ -7,6 +7,8 @@ export default function TournamentDashboard() {
   
   const [activeTab, setActiveTab] = useState('points'); // 'points', 'fixtures'
   const [filterType, setFilterType] = useState('all'); // 'all', 'mine'
+  const [expandedScorer, setExpandedScorer] = useState(null);
+  const [expandedAssist, setExpandedAssist] = useState(null);
 
   const nextGame = fixtures.find(f => f.status === 'upcoming');
 
@@ -49,21 +51,44 @@ export default function TournamentDashboard() {
   pointsTable.forEach(t => t.gd = t.gf - t.ga);
   pointsTable.sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf);
 
+  const playerStats = players.filter(p => p.status === 'sold').map(p => {
+    let goals = 0;
+    let assists = 0;
+    fixtures.forEach(f => {
+      (f.events || []).forEach(e => {
+        if (e.type === 'goal') {
+          if (e.playerId === p.id) goals++;
+          if (e.assistId === p.id) assists++;
+        }
+      });
+    });
+    return { ...p, goals, assists };
+  });
+  
+  const topScorers = [...playerStats].filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10);
+  const topAssists = [...playerStats].filter(p => p.assists > 0).sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name)).slice(0, 10);
+
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in pb-12">
       {/* Tab Navigation */}
       <div className="flex bg-slate-200 dark:bg-[#161618] p-1 rounded-xl">
         <button 
           onClick={() => setActiveTab('points')}
-          className={`flex-1 py-3 text-sm font-bold rounded-lg transition-colors ${activeTab === 'points' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
+          className={`flex-1 py-3 text-[10px] sm:text-sm font-bold uppercase sm:capitalize tracking-widest sm:tracking-normal rounded-lg transition-colors ${activeTab === 'points' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
         >
-          Points Table
+          Points
         </button>
         <button 
           onClick={() => setActiveTab('fixtures')}
-          className={`flex-1 py-3 text-sm font-bold rounded-lg transition-colors ${activeTab === 'fixtures' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
+          className={`flex-1 py-3 text-[10px] sm:text-sm font-bold uppercase sm:capitalize tracking-widest sm:tracking-normal rounded-lg transition-colors ${activeTab === 'fixtures' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
         >
           Fixtures
+        </button>
+        <button 
+          onClick={() => setActiveTab('stats')}
+          className={`flex-1 py-3 text-[10px] sm:text-sm font-bold uppercase sm:capitalize tracking-widest sm:tracking-normal rounded-lg transition-colors ${activeTab === 'stats' ? 'bg-white dark:bg-[#111] text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}
+        >
+          Stats
         </button>
       </div>
 
@@ -137,7 +162,10 @@ export default function TournamentDashboard() {
             {fixtures.filter(f => filterType === 'all' || f.teamAId === user?.id || f.teamBId === user?.id).length === 0 && (
               <p className="text-center py-8 text-slate-500 font-bold text-sm">No fixtures scheduled.</p>
             )}
-            {fixtures.filter(f => filterType === 'all' || f.teamAId === user?.id || f.teamBId === user?.id).map(f => {
+            {[...fixtures].filter(f => filterType === 'all' || f.teamAId === user?.id || f.teamBId === user?.id).sort((a, b) => {
+               const order = { 'live': 1, 'upcoming': 2, 'completed': 3 };
+               return (order[a.status] || 4) - (order[b.status] || 4);
+            }).map(f => {
               const teamA = managers.find(m => m.id === f.teamAId) || { teamName: 'Unknown' };
               const teamB = managers.find(m => m.id === f.teamBId) || { teamName: 'Unknown' };
               const events = f.events || [];
@@ -237,6 +265,104 @@ export default function TournamentDashboard() {
               );
             })}
           </div>
+        )}
+
+        {activeTab === 'stats' && (
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                 <div className="flex items-center gap-2 mb-4">
+                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Scorers</h3>
+                 </div>
+                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
+                    {topScorers.length === 0 ? (
+                       <p className="text-center text-sm font-bold text-slate-500 py-6">No goals scored yet.</p>
+                    ) : (
+                       topScorers.map((p, i) => (
+                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
+                             <div 
+                               onClick={() => setExpandedScorer(expandedScorer === p.id ? null : p.id)} 
+                               className="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-[#111]"
+                             >
+                                <div className="flex items-center gap-3">
+                                   <span className={`w-6 text-center font-black ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
+                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   <div>
+                                      <p className="font-black text-sm text-slate-900 dark:text-white">{p.name}</p>
+                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
+                                   </div>
+                                </div>
+                                <div className="text-lg font-black text-indigo-600 dark:text-indigo-400 px-3">{p.goals}</div>
+                             </div>
+                             {expandedScorer === p.id && (
+                                <div className="p-3 pt-0 bg-slate-50/50 dark:bg-slate-900/10 border-t border-slate-100 dark:border-slate-800/50">
+                                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-2">Goals Scored Against</p>
+                                   <div className="space-y-1.5">
+                                      {fixtures.flatMap(f => (f.events || []).filter(e => e.type === 'goal' && e.playerId === p.id).map((e, idx) => {
+                                         const oppTeamId = f.teamAId === p.teamId ? f.teamBId : f.teamAId;
+                                         const oppTeam = managers.find(m => m.id === oppTeamId);
+                                         return (
+                                            <div key={`${e.id}-${idx}`} className="flex justify-between items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-[#161618] px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-800/80">
+                                               <span className="truncate">vs {oppTeam?.teamName || 'Unknown Team'}</span>
+                                               <span className="text-indigo-500 shrink-0 ml-2">{e.minute ? `${e.minute}'` : 'N/A'}</span>
+                                            </div>
+                                         );
+                                      }))}
+                                   </div>
+                                </div>
+                             )}
+                          </div>
+                       ))
+                    )}
+                 </div>
+              </div>
+
+              <div>
+                 <div className="flex items-center gap-2 mb-4">
+                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Assists</h3>
+                 </div>
+                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
+                    {topAssists.length === 0 ? (
+                       <p className="text-center text-sm font-bold text-slate-500 py-6">No assists recorded yet.</p>
+                    ) : (
+                       topAssists.map((p, i) => (
+                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
+                             <div 
+                               onClick={() => setExpandedAssist(expandedAssist === p.id ? null : p.id)} 
+                               className="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-[#111]"
+                             >
+                                <div className="flex items-center gap-3">
+                                   <span className={`w-6 text-center font-black ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
+                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   <div>
+                                      <p className="font-black text-sm text-slate-900 dark:text-white">{p.name}</p>
+                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
+                                   </div>
+                                </div>
+                                <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 px-3">{p.assists}</div>
+                             </div>
+                             {expandedAssist === p.id && (
+                                <div className="p-3 pt-0 bg-slate-50/50 dark:bg-slate-900/10 border-t border-slate-100 dark:border-slate-800/50">
+                                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-2">Assists Against</p>
+                                   <div className="space-y-1.5">
+                                      {fixtures.flatMap(f => (f.events || []).filter(e => e.type === 'goal' && e.assistId === p.id).map((e, idx) => {
+                                         const oppTeamId = f.teamAId === p.teamId ? f.teamBId : f.teamAId;
+                                         const oppTeam = managers.find(m => m.id === oppTeamId);
+                                         return (
+                                            <div key={`${e.id}-${idx}`} className="flex justify-between items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-[#161618] px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-800/80">
+                                               <span className="truncate">vs {oppTeam?.teamName || 'Unknown Team'}</span>
+                                               <span className="text-emerald-500 shrink-0 ml-2">{e.minute ? `${e.minute}'` : 'N/A'}</span>
+                                            </div>
+                                         );
+                                      }))}
+                                   </div>
+                                </div>
+                             )}
+                          </div>
+                       ))
+                    )}
+                 </div>
+              </div>
+           </div>
         )}
       </div>
     </div>
