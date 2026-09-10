@@ -491,12 +491,24 @@ export default function LiveAuction() {
                               value={customBid}
                               onChange={e => setCustomBid(e.target.value)}
                               disabled={liveAuction.timerPaused || (timeLeft === 0 && liveAuction.auctionEndAt) || liveAuction.highestBidderId === myTeam?.id}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const val = parseInt(customBid);
+                                  if (isNaN(val)) return showToast("Enter a valid amount", "error");
+                                  if (isFirstBid ? val >= Number(liveAuction.currentBid) : val > Number(liveAuction.currentBid)) {
+                                     handleBid(val);
+                                  } else {
+                                     showToast(`Bid must be ${isFirstBid ? 'at least' : 'higher than'} current bid!`, 'error');
+                                  }
+                                }
+                              }}
                             />
                             <button 
                               onClick={() => {
                                 const val = parseInt(customBid);
                                 if (isNaN(val)) return showToast("Enter a valid amount", "error");
-                                if (isFirstBid ? val >= liveAuction.currentBid : val > liveAuction.currentBid) {
+                                if (isFirstBid ? val >= Number(liveAuction.currentBid) : val > Number(liveAuction.currentBid)) {
                                    handleBid(val);
                                 } else {
                                    showToast(`Bid must be ${isFirstBid ? 'at least' : 'higher than'} current bid!`, 'error');

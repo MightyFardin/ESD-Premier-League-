@@ -7,9 +7,13 @@ export default function Countdown({ targetDate }) {
     if (!targetDate) return;
     
     const calculateTimeLeft = () => {
-      // Fix for Safari/iOS: replace hyphens with slashes and 'T' with a space
-      const safeTarget = targetDate.replace(/-/g, '/').replace('T', ' ');
-      const difference = +new Date(safeTarget) - +new Date();
+      let difference = 0;
+      try {
+        const parsedDate = typeof targetDate === 'string' ? new Date(targetDate.replace(/-/g, '/').replace('T', ' ')) : new Date(targetDate);
+        difference = +parsedDate - +new Date();
+      } catch (e) {
+        console.error("Countdown Date parsing error:", e);
+      }
       if (difference > 0) {
         return {
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -30,7 +34,8 @@ export default function Countdown({ targetDate }) {
     return () => clearInterval(timer);
   }, [targetDate]);
 
-  if (!targetDate || !timeLeft) return null;
+  if (!targetDate) return null;
+  if (!timeLeft) return <div className="text-red-500 font-bold text-center mt-4 border border-red-500 p-2 rounded">Timer Expired or Date Invalid: {targetDate}</div>;
 
   return (
     <div className="flex justify-center gap-2 sm:gap-4 my-8 animate-slide-up" style={{ animationDelay: '300ms' }}>

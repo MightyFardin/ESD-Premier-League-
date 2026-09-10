@@ -651,6 +651,19 @@ export default function AdminDashboard() {
                         <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> START
                       </button>
                     )}
+                    {p.bannedTeams?.length > 0 && (
+                      <button 
+                        onClick={() => {
+                          if(window.confirm(`Undo penalty? This will remove bidding bans from this player.`)) {
+                            socket.emit('removeBan', p.id);
+                          }
+                        }}
+                        className="flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-center"
+                        title="Remove Penalty Bans"
+                      >
+                        UNDO
+                      </button>
+                    )}
                     <Link to={`/logs?q=${encodeURIComponent(p.name)}`} className="flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg transition-colors text-center">LOGS</Link>
                     <button onClick={() => { setEditingPlayer(p); setUploadedPicUrl(''); setSelectedPosition(p.position); }} className="flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-200 dark:bg-slate-800 rounded-lg text-center">EDIT</button>
                     <button onClick={() => setDeletingPlayer(p)} className="flex-1 sm:flex-none px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg text-center">DEL</button>

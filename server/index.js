@@ -160,6 +160,18 @@ async function startServer() {
       });
       broadcastState();
     });
+    socket.on('removeBan', (playerId) => {
+      state.players = state.players.map(p => {
+        if (p.id === playerId) {
+          const updatedPlayer = { ...p, bannedTeams: [] };
+          savePlayer(updatedPlayer).catch(e => console.error(e));
+          addLog(`Penalty bans removed for player ${p.name}.`, 'system');
+          return updatedPlayer;
+        }
+        return p;
+      });
+      broadcastState();
+    });
 
     // Manager Actions
     socket.on('createManager', (manager) => {

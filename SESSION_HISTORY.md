@@ -30,5 +30,18 @@ This document serves as a persistent memory of the features, rules, and logic im
 - **Deployment:** The project is linked to Vercel/GitHub. Any fixed code must be committed and pushed to the `main` branch to trigger a live deployment.
 - **Local Testing:** Local testing runs on port `5175` (frontend via Vite) and port `3001` (backend via Node/Socket.io). 
 
+## 5. Uptime Monitoring (Health Check)
+**Files Modified:** `server/index.js`
+- **The Issue:** The backend hosted on Render was sleeping during inactivity, requiring an uptime ping from Cron-job.org. 
+- **The Fix:** Added a lightweight `GET /health` endpoint that instantly responds with `{"status": "ok"}`. This keeps the backend alive without querying the database or interfering with Socket.io.
+
+## 6. Safari/iOS Date Parsing Bug (Countdown Timer)
+**Files Modified:** `src/components/Countdown.jsx`
+- **The Issue:** The countdown timer for the auction schedule was not appearing on Safari or iOS devices, or for certain timezones because `new Date('YYYY-MM-DDTHH:mm')` parsed as `NaN` (Invalid Date) in older/strict WebKit engines.
+- **The Fix:** 
+  - Standardized the date string by replacing hyphens with slashes and `T` with a space (`YYYY/MM/DD HH:mm`), making it universally parseable.
+  - Wrapped the date parsing in a robust `try-catch` block.
+  - Added a visual debug fallback state so that if the timer is expired or the date is strictly invalid, it renders a red debug box rather than silently failing and returning `null`.
+
 ---
 *Last updated: Sept 9, 2026*
