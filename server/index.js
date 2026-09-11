@@ -12,6 +12,11 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Root endpoint for simple pings
+app.get('/', (req, res) => {
+  res.status(200).send('Football Auction Backend is running!');
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] }
