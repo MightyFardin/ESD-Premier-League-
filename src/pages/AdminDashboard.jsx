@@ -23,6 +23,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
   const [events, setEvents] = useState(fixture?.events || []);
   const [teamAGoals, setTeamAGoals] = useState(fixture?.teamAGoals || 0);
   const [teamBGoals, setTeamBGoals] = useState(fixture?.teamBGoals || 0);
+  const [motmId, setMotmId] = useState(fixture?.motmId || '');
 
   const teamAPlayers = players.filter(p => p.teamId === teamAId && p.status === 'sold');
   const teamBPlayers = players.filter(p => p.teamId === teamBId && p.status === 'sold');
@@ -56,7 +57,8 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
       status,
       teamAGoals: status === 'upcoming' ? 0 : Math.max(teamAGoals, events.filter(e => e.teamId === teamAId).length),
       teamBGoals: status === 'upcoming' ? 0 : Math.max(teamBGoals, events.filter(e => e.teamId === teamBId).length),
-      events: status === 'upcoming' ? [] : events
+      events: status === 'upcoming' ? [] : events,
+      motmId: status === 'upcoming' ? null : motmId
     });
   };
 
@@ -233,6 +235,18 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
           <div className="flex gap-2">
             {teamAId && <button type="button" onClick={() => handleAddGoal(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ ADD TEAM A GOAL</button>}
             {teamBId && <button type="button" onClick={() => handleAddGoal(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ ADD TEAM B GOAL</button>}
+          </div>
+          
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Man of the Match</p>
+             <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
+                <div onClick={() => setMotmId('')} className={`shrink-0 cursor-pointer w-10 h-10 rounded-full border flex items-center justify-center text-xs font-black ${!motmId ? 'bg-indigo-100 text-indigo-600 border-indigo-500 dark:bg-indigo-900/30 dark:border-indigo-500' : 'bg-slate-100 text-slate-400 border-slate-300 dark:bg-slate-800 dark:border-slate-700'}`}>None</div>
+                {[...teamAPlayers, ...teamBPlayers].map(p => (
+                   <div key={p.id} onClick={() => setMotmId(p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
+                      {p.pic ? <img src={p.pic} className={`w-10 h-10 rounded-full object-cover ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md' : 'ring-transparent'}`} title={p.name}/> : <div className={`w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md text-indigo-600 dark:text-indigo-400' : 'ring-transparent'}`} title={p.name}>{p.name.charAt(0)}</div>}
+                   </div>
+                ))}
+             </div>
           </div>
         </div>
       )}

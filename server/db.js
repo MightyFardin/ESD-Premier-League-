@@ -71,6 +71,7 @@ async function initDB() {
       );
       
       ALTER TABLE fixtures ADD COLUMN IF NOT EXISTS events JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE fixtures ADD COLUMN IF NOT EXISTS "motmId" TEXT;
     `);
     console.log("Supabase Postgres DB initialized");
   } finally {
@@ -181,8 +182,8 @@ async function saveLog(message, type) {
 
 async function saveFixture(fixture) {
   await pool.query(`
-    INSERT INTO fixtures (id, "teamAId", "teamBId", date, venue, status, "teamAGoals", "teamBGoals", events)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    INSERT INTO fixtures (id, "teamAId", "teamBId", date, venue, status, "teamAGoals", "teamBGoals", events, "motmId")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     ON CONFLICT (id) DO UPDATE SET
       "teamAId" = EXCLUDED."teamAId",
       "teamBId" = EXCLUDED."teamBId",
@@ -191,8 +192,9 @@ async function saveFixture(fixture) {
       status = EXCLUDED.status,
       "teamAGoals" = EXCLUDED."teamAGoals",
       "teamBGoals" = EXCLUDED."teamBGoals",
-      events = EXCLUDED.events
-  `, [fixture.id, fixture.teamAId, fixture.teamBId, fixture.date, fixture.venue, fixture.status, fixture.teamAGoals, fixture.teamBGoals, JSON.stringify(fixture.events || [])]);
+      events = EXCLUDED.events,
+      "motmId" = EXCLUDED."motmId"
+  `, [fixture.id, fixture.teamAId, fixture.teamBId, fixture.date, fixture.venue, fixture.status, fixture.teamAGoals, fixture.teamBGoals, JSON.stringify(fixture.events || []), fixture.motmId]);
 }
 
 async function deleteFixtureDB(id) {
