@@ -61,8 +61,8 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
       date: formData.get('date'),
       venue: formData.get('venue'),
       status,
-      teamAGoals: status === 'upcoming' ? 0 : Math.max(teamAGoals, events.filter(e => e.teamId === teamAId).length),
-      teamBGoals: status === 'upcoming' ? 0 : Math.max(teamBGoals, events.filter(e => e.teamId === teamBId).length),
+      teamAGoals: status === 'upcoming' ? 0 : Math.max(teamAGoals, events.filter(e => e.teamId === teamAId && e.type === 'goal').length),
+      teamBGoals: status === 'upcoming' ? 0 : Math.max(teamBGoals, events.filter(e => e.teamId === teamBId && e.type === 'goal').length),
       events: status === 'upcoming' ? [] : events,
       motmId: status === 'upcoming' ? null : motmId
     });
