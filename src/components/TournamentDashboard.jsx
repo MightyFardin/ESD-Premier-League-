@@ -77,6 +77,8 @@ export default function TournamentDashboard() {
   const playerStats = players.filter(p => p.status === 'sold').map(p => {
     let goals = 0;
     let assists = 0;
+    let saves = 0;
+    let cleanSheets = 0;
     let motms = 0;
     fixtures.forEach(f => {
       (f.events || []).forEach(e => {
@@ -84,17 +86,25 @@ export default function TournamentDashboard() {
           if (e.playerId === p.id) goals++;
           if (e.assistId === p.id) assists++;
         }
+        if (e.type === 'save' && e.playerId === p.id) {
+          saves++;
+        }
+        if (e.type === 'clean_sheet' && e.playerId === p.id) {
+          cleanSheets++;
+        }
       });
       if (f.status === 'completed' && f.motmId === p.id) {
          motms++;
       }
     });
-    return { ...p, goals, assists, motms };
+    return { ...p, goals, assists, saves, cleanSheets, motms };
   });
   
   const topScorers = [...playerStats].filter(p => p.goals > 0).sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name)).slice(0, 10);
   const topAssists = [...playerStats].filter(p => p.assists > 0).sort((a, b) => b.assists - a.assists || a.name.localeCompare(b.name)).slice(0, 10);
   const topMotms = [...playerStats].filter(p => p.motms > 0).sort((a, b) => b.motms - a.motms || a.name.localeCompare(b.name)).slice(0, 10);
+  const topSaves = [...playerStats].filter(p => p.saves > 0).sort((a, b) => b.saves - a.saves || a.name.localeCompare(b.name)).slice(0, 10);
+  const topCleanSheets = [...playerStats].filter(p => p.cleanSheets > 0).sort((a, b) => b.cleanSheets - a.cleanSheets || a.name.localeCompare(b.name)).slice(0, 10);
 
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in pb-12">
@@ -540,6 +550,59 @@ export default function TournamentDashboard() {
                                    </div>
                                 </div>
                                 <div className="text-lg font-black text-amber-500 px-3 flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg> {p.motms}</div>
+                             </div>
+                          </div>
+                       ))
+                    )}
+                 </div>
+              </div>
+              <div>
+                 <div className="flex items-center gap-2 mb-4">
+                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Saves</h3>
+                 </div>
+                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
+                    {topSaves.length === 0 ? (
+                       <p className="text-center text-sm font-bold text-slate-500 py-6">No saves recorded yet.</p>
+                    ) : (
+                       topSaves.map((p, i) => (
+                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
+                             <div className="flex items-center justify-between p-3">
+                                <div className="flex items-center gap-3">
+                                   <span className={`w-6 text-center font-black ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
+                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   <div>
+                                      <p className="font-black text-sm text-slate-900 dark:text-white">{p.name}</p>
+                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
+                                   </div>
+                                </div>
+                                <div className="text-lg font-black text-orange-500 px-3 flex items-center gap-1.5">{p.saves}</div>
+                             </div>
+                          </div>
+                       ))
+                    )}
+                 </div>
+              </div>
+
+              <div>
+                 <div className="flex items-center gap-2 mb-4">
+                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Clean Sheets</h3>
+                 </div>
+                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
+                    {topCleanSheets.length === 0 ? (
+                       <p className="text-center text-sm font-bold text-slate-500 py-6">No clean sheets recorded yet.</p>
+                    ) : (
+                       topCleanSheets.map((p, i) => (
+                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
+                             <div className="flex items-center justify-between p-3">
+                                <div className="flex items-center gap-3">
+                                   <span className={`w-6 text-center font-black ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
+                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   <div>
+                                      <p className="font-black text-sm text-slate-900 dark:text-white">{p.name}</p>
+                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
+                                   </div>
+                                </div>
+                                <div className="text-lg font-black text-teal-500 px-3 flex items-center gap-1.5">{p.cleanSheets}</div>
                              </div>
                           </div>
                        ))

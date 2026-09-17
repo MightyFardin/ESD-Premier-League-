@@ -33,6 +33,12 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
      if (teamId === teamAId) setTeamAGoals(prev => prev + 1);
      if (teamId === teamBId) setTeamBGoals(prev => prev + 1);
   };
+  const handleAddSave = (teamId) => {
+     setEvents([...events, { id: Date.now().toString(), teamId, type: 'save', playerId: '', minute: '' }]);
+  };
+  const handleAddCleanSheet = (teamId) => {
+     setEvents([...events, { id: Date.now().toString(), teamId, type: 'clean_sheet', playerId: '', minute: '' }]);
+  };
   const handleEventChange = (id, field, value) => {
      setEvents(events.map(e => e.id === id ? { ...e, [field]: value } : e));
   };
@@ -152,14 +158,14 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
       
       {status !== 'upcoming' && (teamAId || teamBId) && (
         <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Goal Scorers</p>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Match Events</p>
           {events.map((ev, i) => {
             const isTeamA = ev.teamId === teamAId;
             const plist = isTeamA ? teamAPlayers : teamBPlayers;
             return (
               <div key={ev.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm gap-3">
                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isTeamA ? 'TEAM A GOAL' : 'TEAM B GOAL'}</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isTeamA ? 'TEAM A ' : 'TEAM B '}{ev.type === 'goal' ? 'GOAL' : ev.type === 'save' ? 'SAVE' : 'CLEAN SHEET'}</span>
                     <button type="button" onClick={() => handleRemoveEvent(ev.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-colors">
                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
@@ -167,7 +173,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                  
                  <div className="flex flex-col md:flex-row gap-3">
                     <div className="flex-1 space-y-1">
-                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Scorer</p>
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{ev.type === 'goal' ? 'Scorer' : 'Player'}</p>
                        {!ev.playerId ? (
                          <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
                             {plist.length === 0 && <span className="text-xs text-slate-500">No players</span>}
@@ -193,6 +199,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                        )}
                     </div>
                     
+                    {ev.type === 'goal' && (
                     <div className="flex-1 space-y-1">
                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Assist (Optional)</p>
                        {!ev.assistId ? (
@@ -223,6 +230,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                          </div>
                        )}
                     </div>
+                    )}
                     
                     <div className="w-full md:w-20 space-y-1">
                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Minute</p>
@@ -232,9 +240,19 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
               </div>
             );
           })}
-          <div className="flex gap-2">
-            {teamAId && <button type="button" onClick={() => handleAddGoal(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ ADD TEAM A GOAL</button>}
-            {teamBId && <button type="button" onClick={() => handleAddGoal(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ ADD TEAM B GOAL</button>}
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              {teamAId && <button type="button" onClick={() => handleAddGoal(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ GOAL (A)</button>}
+              {teamBId && <button type="button" onClick={() => handleAddGoal(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ GOAL (B)</button>}
+            </div>
+            <div className="flex gap-2">
+              {teamAId && <button type="button" onClick={() => handleAddSave(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-800 border-dashed hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">+ SAVE (A)</button>}
+              {teamBId && <button type="button" onClick={() => handleAddSave(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-800 border-dashed hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">+ SAVE (B)</button>}
+            </div>
+            <div className="flex gap-2">
+              {teamAId && <button type="button" onClick={() => handleAddCleanSheet(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-lg border border-teal-100 dark:border-teal-800 border-dashed hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors">+ CLEAN SHEET (A)</button>}
+              {teamBId && <button type="button" onClick={() => handleAddCleanSheet(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-lg border border-teal-100 dark:border-teal-800 border-dashed hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors">+ CLEAN SHEET (B)</button>}
+            </div>
           </div>
           
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
