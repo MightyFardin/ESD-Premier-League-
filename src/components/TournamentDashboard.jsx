@@ -2,6 +2,92 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import Countdown from './Countdown';
 
+const PLStatCard = ({ title, data, valueKey, label, colorClass, bgGradient, managers, expandedId, setExpandedId, expandedRender }) => {
+   if (data.length === 0) {
+      return (
+         <div className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm h-full">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#111]">
+               <h3 className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-widest">{title}</h3>
+            </div>
+            <div className="p-8 flex items-center justify-center flex-1">
+               <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">No data yet</p>
+            </div>
+         </div>
+      );
+   }
+
+   const top = data[0];
+   const rest = data.slice(1, 10);
+
+   return (
+     <div className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm h-fit">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-[#111]">
+           <h3 className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-widest">{title}</h3>
+        </div>
+        
+        <div 
+          className={`relative ${bgGradient} p-6 flex items-end justify-between overflow-hidden group min-h-[160px] ${setExpandedId ? 'cursor-pointer' : ''}`} 
+          onClick={() => setExpandedId && setExpandedId(expandedId === top.id ? null : top.id)}
+        >
+           <div className="absolute -right-4 -bottom-4 text-[160px] font-black text-white/40 dark:text-black/20 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500 leading-none">
+             1
+           </div>
+           
+           {top.pic && (
+              <img src={top.pic} className="absolute right-0 bottom-0 h-full w-1/2 object-cover object-left opacity-30 drop-shadow-2xl [mask-image:linear-gradient(to_right,transparent,black_50%)]" />
+           )}
+
+           <div className="relative z-10 flex flex-col gap-1 w-2/3">
+              <span className="text-3xl font-black text-slate-900 dark:text-white leading-tight drop-shadow-md">{top.name}</span>
+              <span className="text-xs font-black text-slate-800/70 dark:text-white/70 uppercase tracking-widest">{managers.find(m => m.id === top.teamId)?.teamName || 'Unknown'}</span>
+           </div>
+           
+           <div className="relative z-10 text-right flex flex-col items-end justify-end">
+              <span className={`text-6xl font-black ${colorClass} leading-none drop-shadow-lg`}>{top[valueKey]}</span>
+              <span className="text-[10px] font-black text-slate-800/70 dark:text-white/70 uppercase tracking-widest mt-1">{label}</span>
+           </div>
+        </div>
+        
+        {expandedId === top.id && expandedRender && (
+           <div className="p-4 bg-slate-100 dark:bg-[#161618] border-b border-slate-200 dark:border-slate-800 shadow-inner">
+              {expandedRender(top)}
+           </div>
+        )}
+
+        <div className="flex flex-col">
+           {rest.map((p, i) => (
+             <React.Fragment key={p.id}>
+             <div 
+               onClick={() => setExpandedId && setExpandedId(expandedId === p.id ? null : p.id)}
+               className={`flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-[#111] transition-colors ${setExpandedId ? 'cursor-pointer' : ''} last:border-0`}
+             >
+                <div className="flex items-center gap-4">
+                   <span className="font-black text-slate-400 text-sm w-4">{i + 2}</span>
+                   {p.pic ? (
+                      <img src={p.pic} className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                   ) : (
+                      <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-xs text-slate-500">{p.name.charAt(0)}</div>
+                   )}
+                   <div className="flex flex-col">
+                      <span className="font-black text-sm text-slate-900 dark:text-white">{p.name}</span>
+                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown'}</span>
+                   </div>
+                </div>
+                <span className={`font-black text-lg ${colorClass}`}>{p[valueKey]}</span>
+             </div>
+             {expandedId === p.id && expandedRender && (
+                <div className="p-4 bg-slate-100 dark:bg-[#161618] border-b border-slate-200 dark:border-slate-800 shadow-inner">
+                   {expandedRender(p)}
+                </div>
+             )}
+             </React.Fragment>
+           ))}
+        </div>
+     </div>
+   )
+}
+
+
 export default function TournamentDashboard() {
   const { user, fixtures = [], managers = [], players = [] } = useAuth();
   
@@ -435,180 +521,94 @@ export default function TournamentDashboard() {
         )}
 
         {activeTab === 'stats' && (
-           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-              <div>
-                 <div className="flex items-center gap-2 mb-4">
-                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Scorers</h3>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
-                    {topScorers.length === 0 ? (
-                       <p className="text-center text-sm font-bold text-slate-500 py-6">No goals scored yet.</p>
-                    ) : (
-                       topScorers.map((p, i) => (
-                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
-                             <div 
-                               onClick={() => setExpandedScorer(expandedScorer === p.id ? null : p.id)} 
-                               className="flex items-center justify-between p-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-[#111]"
-                             >
-                                <div className="flex items-center gap-2">
-                                   <span className={`w-5 text-center font-bold text-xs ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
-                                   {p.pic ? <img src={p.pic} className="w-6 h-6 rounded-full object-cover" /> : <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
-                                   <div>
-                                      <p className="font-medium text-xs text-slate-900 dark:text-white">{p.name}</p>
-                                      <p className="text-[9px] font-medium text-slate-500 uppercase">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
-                                   </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-8 items-start">
+              <PLStatCard 
+                 title="Goals" 
+                 data={topScorers} 
+                 valueKey="goals" 
+                 label="Goals" 
+                 colorClass="text-indigo-600 dark:text-indigo-400" 
+                 bgGradient="bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-900/40 dark:to-indigo-800/40"
+                 managers={managers}
+                 expandedId={expandedScorer}
+                 setExpandedId={setExpandedScorer}
+                 expandedRender={(p) => (
+                    <div>
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Goals Scored Against</p>
+                       <div className="space-y-1.5">
+                          {fixtures.flatMap(f => (f.events || []).filter(e => e.type === 'goal' && e.playerId === p.id).map((e, idx) => {
+                             const oppTeamId = f.teamAId === p.teamId ? f.teamBId : f.teamAId;
+                             const oppTeam = managers.find(m => m.id === oppTeamId);
+                             return (
+                                <div key={`${e.id}-${idx}`} className="flex justify-between items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-[#161618] px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                                   <span className="truncate">vs {oppTeam?.teamName || 'Unknown Team'}</span>
+                                   <span className="text-indigo-500 shrink-0 ml-2">{e.minute ? `${e.minute}'` : 'N/A'}</span>
                                 </div>
-                                <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 px-2">{p.goals}</div>
-                             </div>
-                             {expandedScorer === p.id && (
-                                <div className="p-3 pt-0 bg-slate-50/50 dark:bg-slate-900/10 border-t border-slate-100 dark:border-slate-800/50">
-                                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-2">Goals Scored Against</p>
-                                   <div className="space-y-1.5">
-                                      {fixtures.flatMap(f => (f.events || []).filter(e => e.type === 'goal' && e.playerId === p.id).map((e, idx) => {
-                                         const oppTeamId = f.teamAId === p.teamId ? f.teamBId : f.teamAId;
-                                         const oppTeam = managers.find(m => m.id === oppTeamId);
-                                         return (
-                                            <div key={`${e.id}-${idx}`} className="flex justify-between items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-[#161618] px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-800/80">
-                                               <span className="truncate">vs {oppTeam?.teamName || 'Unknown Team'}</span>
-                                               <span className="text-indigo-500 shrink-0 ml-2">{e.minute ? `${e.minute}'` : 'N/A'}</span>
-                                            </div>
-                                         );
-                                      }))}
-                                   </div>
-                                </div>
-                             )}
-                          </div>
-                       ))
-                    )}
-                 </div>
-              </div>
+                             );
+                          }))}
+                       </div>
+                    </div>
+                 )}
+              />
 
-              <div>
-                 <div className="flex items-center gap-2 mb-4">
-                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Assists</h3>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
-                    {topAssists.length === 0 ? (
-                       <p className="text-center text-sm font-bold text-slate-500 py-6">No assists recorded yet.</p>
-                    ) : (
-                       topAssists.map((p, i) => (
-                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
-                             <div 
-                               onClick={() => setExpandedAssist(expandedAssist === p.id ? null : p.id)} 
-                               className="flex items-center justify-between p-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-[#111]"
-                             >
-                                <div className="flex items-center gap-2">
-                                   <span className={`w-5 text-center font-bold text-xs ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
-                                   {p.pic ? <img src={p.pic} className="w-6 h-6 rounded-full object-cover" /> : <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
-                                   <div>
-                                      <p className="font-medium text-xs text-slate-900 dark:text-white">{p.name}</p>
-                                      <p className="text-[9px] font-medium text-slate-500 uppercase">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
-                                   </div>
+              <PLStatCard 
+                 title="Assists" 
+                 data={topAssists} 
+                 valueKey="assists" 
+                 label="Assists" 
+                 colorClass="text-emerald-600 dark:text-emerald-400" 
+                 bgGradient="bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/40 dark:to-emerald-800/40"
+                 managers={managers}
+                 expandedId={expandedAssist}
+                 setExpandedId={setExpandedAssist}
+                 expandedRender={(p) => (
+                    <div>
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2">Assists Against</p>
+                       <div className="space-y-1.5">
+                          {fixtures.flatMap(f => (f.events || []).filter(e => e.type === 'goal' && e.assistId === p.id).map((e, idx) => {
+                             const oppTeamId = f.teamAId === p.teamId ? f.teamBId : f.teamAId;
+                             const oppTeam = managers.find(m => m.id === oppTeamId);
+                             return (
+                                <div key={`${e.id}-${idx}`} className="flex justify-between items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-[#161618] px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                                   <span className="truncate">vs {oppTeam?.teamName || 'Unknown Team'}</span>
+                                   <span className="text-emerald-500 shrink-0 ml-2">{e.minute ? `${e.minute}'` : 'N/A'}</span>
                                 </div>
-                                <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 px-2">{p.assists}</div>
-                             </div>
-                             {expandedAssist === p.id && (
-                                <div className="p-3 pt-0 bg-slate-50/50 dark:bg-slate-900/10 border-t border-slate-100 dark:border-slate-800/50">
-                                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-2">Assists Against</p>
-                                   <div className="space-y-1.5">
-                                      {fixtures.flatMap(f => (f.events || []).filter(e => e.type === 'goal' && e.assistId === p.id).map((e, idx) => {
-                                         const oppTeamId = f.teamAId === p.teamId ? f.teamBId : f.teamAId;
-                                         const oppTeam = managers.find(m => m.id === oppTeamId);
-                                         return (
-                                            <div key={`${e.id}-${idx}`} className="flex justify-between items-center text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-[#161618] px-3 py-2 rounded-lg border border-slate-100 dark:border-slate-800/80">
-                                               <span className="truncate">vs {oppTeam?.teamName || 'Unknown Team'}</span>
-                                               <span className="text-emerald-500 shrink-0 ml-2">{e.minute ? `${e.minute}'` : 'N/A'}</span>
-                                            </div>
-                                         );
-                                      }))}
-                                   </div>
-                                </div>
-                             )}
-                          </div>
-                       ))
-                    )}
-                 </div>
-              </div>
+                             );
+                          }))}
+                       </div>
+                    </div>
+                 )}
+              />
+              
+              <PLStatCard 
+                 title="Clean Sheets" 
+                 data={topCleanSheets} 
+                 valueKey="cleanSheets" 
+                 label="Clean Sheets" 
+                 colorClass="text-teal-600 dark:text-teal-400" 
+                 bgGradient="bg-gradient-to-br from-teal-100 to-teal-200 dark:from-teal-900/40 dark:to-teal-800/40"
+                 managers={managers}
+              />
 
-              <div>
-                 <div className="flex items-center gap-2 mb-4">
-                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Man of the Match</h3>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
-                    {topMotms.length === 0 ? (
-                       <p className="text-center text-sm font-bold text-slate-500 py-6">No awards given yet.</p>
-                    ) : (
-                       topMotms.map((p, i) => (
-                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
-                             <div className="flex items-center justify-between p-3">
-                                <div className="flex items-center gap-3">
-                                   <span className={`w-6 text-center font-black ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
-                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
-                                   <div>
-                                      <p className="font-black text-sm text-slate-900 dark:text-white">{p.name}</p>
-                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
-                                   </div>
-                                </div>
-                                <div className="text-lg font-black text-amber-500 px-3 flex items-center gap-1.5"><svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg> {p.motms}</div>
-                             </div>
-                          </div>
-                       ))
-                    )}
-                 </div>
-              </div>
-              <div>
-                 <div className="flex items-center gap-2 mb-4">
-                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Saves</h3>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
-                    {topSaves.length === 0 ? (
-                       <p className="text-center text-sm font-bold text-slate-500 py-6">No saves recorded yet.</p>
-                    ) : (
-                       topSaves.map((p, i) => (
-                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
-                             <div className="flex items-center justify-between p-3">
-                                <div className="flex items-center gap-3">
-                                   <span className={`w-6 text-center font-black ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
-                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
-                                   <div>
-                                      <p className="font-black text-sm text-slate-900 dark:text-white">{p.name}</p>
-                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
-                                   </div>
-                                </div>
-                                <div className="text-lg font-black text-orange-500 px-3 flex items-center gap-1.5">{p.saves}</div>
-                             </div>
-                          </div>
-                       ))
-                    )}
-                 </div>
-              </div>
+              <PLStatCard 
+                 title="Saves" 
+                 data={topSaves} 
+                 valueKey="saves" 
+                 label="Saves" 
+                 colorClass="text-orange-600 dark:text-orange-400" 
+                 bgGradient="bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/40 dark:to-orange-800/40"
+                 managers={managers}
+              />
 
-              <div>
-                 <div className="flex items-center gap-2 mb-4">
-                    <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-widest">Top Clean Sheets</h3>
-                 </div>
-                 <div className="bg-slate-50 dark:bg-[#161618] rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
-                    {topCleanSheets.length === 0 ? (
-                       <p className="text-center text-sm font-bold text-slate-500 py-6">No clean sheets recorded yet.</p>
-                    ) : (
-                       topCleanSheets.map((p, i) => (
-                          <div key={p.id} className="flex flex-col bg-white dark:bg-[#0a0a0c] rounded-lg border border-slate-100 dark:border-slate-800/80 shadow-sm overflow-hidden transition-all">
-                             <div className="flex items-center justify-between p-3">
-                                <div className="flex items-center gap-3">
-                                   <span className={`w-6 text-center font-black ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-300 dark:text-slate-700'}`}>#{i+1}</span>
-                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
-                                   <div>
-                                      <p className="font-black text-sm text-slate-900 dark:text-white">{p.name}</p>
-                                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{managers.find(m => m.id === p.teamId)?.teamName || 'Unknown Team'}</p>
-                                   </div>
-                                </div>
-                                <div className="text-lg font-black text-teal-500 px-3 flex items-center gap-1.5">{p.cleanSheets}</div>
-                             </div>
-                          </div>
-                       ))
-                    )}
-                 </div>
-              </div>
+              <PLStatCard 
+                 title="Man of the Match" 
+                 data={topMotms} 
+                 valueKey="motms" 
+                 label="Awards" 
+                 colorClass="text-amber-600 dark:text-amber-400" 
+                 bgGradient="bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/40 dark:to-amber-800/40"
+                 managers={managers}
+              />
            </div>
         )}
       </div>
