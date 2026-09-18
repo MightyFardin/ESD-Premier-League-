@@ -43,5 +43,18 @@ This document serves as a persistent memory of the features, rules, and logic im
   - Wrapped the date parsing in a robust `try-catch` block.
   - Added a visual debug fallback state so that if the timer is expired or the date is strictly invalid, it renders a red debug box rather than silently failing and returning `null`.
 
+## 7. Match Events UI Enhancements
+**Files Modified:** `src/components/TournamentDashboard.jsx`
+- **Dynamic Icons:** Replaced the generic football icon with specific emojis based on event types: ⚽ for goals, 🧤 for saves, and 🛡️ for clean sheets.
+- **Grouped Events:** Save events by goalkeepers are now grouped and displayed as an aggregated count (e.g., `🧤 x3`) instead of separate individual events.
+- **Compact View & Assists:** Match results cards now collapse by default to save vertical space. When a user clicks "View Match Details", it expands to reveal the events, which now include the assisting player's name (e.g., `(A: Player Name)`) for goals.
+
+## 8. Google Drive Image Fixes
+**Files Modified:** `src/pages/AdminDashboard.jsx`, `src/components/TournamentDashboard.jsx`, `server/index.js`
+- **The Issue:** Profile pictures and team logos linked from Google Drive URLs (`drive.google.com`) were often failing to load in the UI with `403 Forbidden` errors due to HTTP Referrer blocking, or appearing as raw unusable HTML URLs.
+- **The Fix:**
+  - Added `referrerPolicy="no-referrer"` to image tags in both Admin and Tournament Dashboards.
+  - Implemented an automatic DB cleanup script inside `server/index.js`. On server startup and during bulk Excel imports, the backend now automatically sanitizes raw `drive.google.com` links, converting them into direct image links (`lh3.googleusercontent.com/d/id`) and saving them back to Supabase.
+
 ---
-*Last updated: Sept 9, 2026*
+*Last updated: Sept 18, 2026*
