@@ -34,7 +34,7 @@ const PLStatCard = ({ title, data, valueKey, label, colorClass, bgGradient, mana
            </div>
            
            {top.pic && (
-              <img src={top.pic} className="absolute right-0 bottom-0 h-full w-1/2 object-cover object-left opacity-30 drop-shadow-2xl [mask-image:linear-gradient(to_right,transparent,black_50%)]" />
+              <img src={top.pic} referrerPolicy="no-referrer" className="absolute right-0 bottom-0 h-full w-1/2 object-cover object-left opacity-30 drop-shadow-2xl [mask-image:linear-gradient(to_right,transparent,black_50%)]" />
            )}
 
            <div className="relative z-10 flex flex-col gap-1 w-2/3">
@@ -64,7 +64,7 @@ const PLStatCard = ({ title, data, valueKey, label, colorClass, bgGradient, mana
                 <div className="flex items-center gap-4">
                    <span className="font-black text-slate-400 text-sm w-4">{i + 2}</span>
                    {p.pic ? (
-                      <img src={p.pic} className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                      <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover shadow-sm" />
                    ) : (
                       <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-xs text-slate-500">{p.name.charAt(0)}</div>
                    )}
@@ -95,6 +95,14 @@ export default function TournamentDashboard() {
   const [filterType, setFilterType] = useState('all'); // 'all', 'mine'
   const [expandedScorer, setExpandedScorer] = useState(null);
   const [expandedAssist, setExpandedAssist] = useState(null);
+  const [expandedFixtures, setExpandedFixtures] = useState({});
+
+  const toggleFixture = (fixtureId) => {
+    setExpandedFixtures(prev => ({
+      ...prev,
+      [fixtureId]: !prev[fixtureId]
+    }));
+  };
 
   const [nowTime, setNowTime] = useState(Date.now());
   
@@ -250,7 +258,7 @@ export default function TournamentDashboard() {
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2">
                         {team.logo ? (
-                          <img src={team.logo} alt="" className="w-6 h-6 rounded-full object-cover" />
+                          <img src={team.logo} alt="" referrerPolicy="no-referrer" className="w-6 h-6 rounded-full object-cover" />
                         ) : (
                           <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 text-[10px]">
                             {team.name.charAt(0)}
@@ -316,7 +324,7 @@ export default function TournamentDashboard() {
                            <>
                               <div className="flex-1 flex flex-col items-center text-center gap-2">
                                 {teamA.teamLogo ? (
-                                  <img src={teamA.teamLogo} alt="" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
+                                  <img src={teamA.teamLogo} alt="" referrerPolicy="no-referrer" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
                                 ) : (
                                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-indigo-300 dark:text-slate-400 shadow-sm ring-2 ring-white dark:ring-[#111]">
                                     {(teamA.teamName || 'T').charAt(0)}
@@ -333,7 +341,7 @@ export default function TournamentDashboard() {
                               
                               <div className="flex-1 flex flex-col items-center text-center gap-2">
                                 {teamB.teamLogo ? (
-                                  <img src={teamB.teamLogo} alt="" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
+                                  <img src={teamB.teamLogo} alt="" referrerPolicy="no-referrer" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
                                 ) : (
                                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-indigo-300 dark:text-slate-400 shadow-sm ring-2 ring-white dark:ring-[#111]">
                                     {(teamB.teamName || 'T').charAt(0)}
@@ -386,7 +394,7 @@ export default function TournamentDashboard() {
                   <div className="flex items-center justify-between max-w-sm mx-auto">
                     <div className="flex-1 flex flex-col items-center text-center gap-2">
                       {teamA.teamLogo ? (
-                        <img src={teamA.teamLogo} alt="" className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
+                        <img src={teamA.teamLogo} alt="" referrerPolicy="no-referrer" className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
                       ) : (
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-lg font-bold text-slate-400 shadow-sm ring-2 ring-white dark:ring-[#111]">
                           {(teamA.teamName || teamA.name || 'T').charAt(0)}
@@ -411,7 +419,7 @@ export default function TournamentDashboard() {
 
                     <div className="flex-1 flex flex-col items-center text-center gap-2">
                       {teamB.teamLogo ? (
-                        <img src={teamB.teamLogo} alt="" className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
+                        <img src={teamB.teamLogo} alt="" referrerPolicy="no-referrer" className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm ring-2 ring-white dark:ring-[#111]" />
                       ) : (
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-lg font-bold text-slate-400 shadow-sm ring-2 ring-white dark:ring-[#111]">
                           {(teamB.teamName || teamB.name || 'T').charAt(0)}
@@ -423,42 +431,93 @@ export default function TournamentDashboard() {
 
                   {/* Goal Scorers */}
                   {(teamAEvents.length > 0 || teamBEvents.length > 0) && (
-                    <div className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-800 flex">
-                      <div className="flex-1 border-r border-slate-200 dark:border-slate-800 pr-4">
-                        {teamAEvents.map((e, i) => {
-                          const player = players.find(p => p.id === e.playerId);
-                          return (
-                            <div key={i} className="flex justify-between items-center text-xs py-1">
-                              <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{player?.name || 'Unknown'}</span>
-                              <span className="text-slate-400 font-medium">⚽ {e.minute && `${e.minute}'`}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="flex-1 pl-4">
-                        {teamBEvents.map((e, i) => {
-                          const player = players.find(p => p.id === e.playerId);
-                          return (
-                            <div key={i} className="flex justify-between items-center text-xs py-1">
-                              <span className="text-slate-400 font-medium">⚽ {e.minute && `${e.minute}'`}</span>
-                              <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{player?.name || 'Unknown'}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                    <div className="mt-6 flex justify-center">
+                      <button onClick={() => toggleFixture(f.id)} className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest flex items-center gap-1 hover:text-indigo-600 transition-colors bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-full">
+                        {expandedFixtures[f.id] ? 'Hide Match Details' : 'View Match Details'}
+                        <svg className={`w-3 h-3 transition-transform ${expandedFixtures[f.id] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
                     </div>
                   )}
-                  
-                  {/* Man of the Match */}
-                  {f.computedStatus === 'completed' && f.motmId && (
-                     <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center animate-fade-in">
+
+                  {expandedFixtures[f.id] && (
+                    <div className="animate-fade-in">
+                      {(teamAEvents.length > 0 || teamBEvents.length > 0) && (
+                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex">
+                          <div className="flex-1 border-r border-slate-200 dark:border-slate-800 pr-4">
+                            {(() => {
+                              const groupedA = [];
+                              const savesA = {};
+                              teamAEvents.forEach(e => {
+                                if (e.type === 'save') {
+                                  savesA[e.playerId] = (savesA[e.playerId] || 0) + 1;
+                                } else {
+                                  groupedA.push(e);
+                                }
+                              });
+                              Object.entries(savesA).forEach(([playerId, count]) => {
+                                groupedA.push({ type: 'save', playerId, count });
+                              });
+                              return groupedA.map((e, i) => {
+                                const player = players.find(p => p.id === e.playerId);
+                                const assistPlayer = e.assistId && e.assistId !== 'none' ? players.find(p => p.id === e.assistId) : null;
+                                return (
+                                  <div key={i} className="flex justify-between items-center text-xs py-1">
+                                    <div className="flex flex-col">
+                                      <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{player?.name || 'Unknown'}</span>
+                                      {assistPlayer && <span className="text-[9px] text-slate-400 font-medium">(A: {assistPlayer.name})</span>}
+                                    </div>
+                                    <span className="text-slate-400 font-medium shrink-0 ml-2">
+                                      {e.type === 'goal' ? '⚽' : e.type === 'save' ? '🧤' : '🛡️'} {e.count ? `x${e.count}` : (e.minute ? `${e.minute}'` : '')}
+                                    </span>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                          <div className="flex-1 pl-4">
+                            {(() => {
+                              const groupedB = [];
+                              const savesB = {};
+                              teamBEvents.forEach(e => {
+                                if (e.type === 'save') {
+                                  savesB[e.playerId] = (savesB[e.playerId] || 0) + 1;
+                                } else {
+                                  groupedB.push(e);
+                                }
+                              });
+                              Object.entries(savesB).forEach(([playerId, count]) => {
+                                groupedB.push({ type: 'save', playerId, count });
+                              });
+                              return groupedB.map((e, i) => {
+                                const player = players.find(p => p.id === e.playerId);
+                                const assistPlayer = e.assistId && e.assistId !== 'none' ? players.find(p => p.id === e.assistId) : null;
+                                return (
+                                  <div key={i} className="flex justify-between items-center text-xs py-1">
+                                    <span className="text-slate-400 font-medium shrink-0 mr-2">
+                                      {e.type === 'goal' ? '⚽' : e.type === 'save' ? '🧤' : '🛡️'} {e.count ? `x${e.count}` : (e.minute ? `${e.minute}'` : '')}
+                                    </span>
+                                    <div className="flex flex-col text-right">
+                                      <span className="font-bold text-slate-700 dark:text-slate-300 truncate">{player?.name || 'Unknown'}</span>
+                                      {assistPlayer && <span className="text-[9px] text-slate-400 font-medium">(A: {assistPlayer.name})</span>}
+                                    </div>
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Man of the Match */}
+                      {f.computedStatus === 'completed' && f.motmId && (
+                         <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center animate-fade-in">
                         <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-1.5"><svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg> Man of the Match</p>
                         {(() => {
                            const motm = players.find(p => p.id === f.motmId);
                            if (!motm) return null;
                            return (
                               <div className="flex items-center gap-3 bg-white dark:bg-[#0a0a0c] px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-800/80 shadow-sm w-full max-w-[200px] justify-center">
-                                 {motm.pic ? <img src={motm.pic} className="w-8 h-8 rounded-full object-cover ring-2 ring-amber-400" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs ring-2 ring-amber-400 text-amber-500">{motm.name.charAt(0)}</div>}
+                                 {motm.pic ? <img src={motm.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover ring-2 ring-amber-400" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs ring-2 ring-amber-400 text-amber-500">{motm.name.charAt(0)}</div>}
                                  <div className="text-left overflow-hidden">
                                     <p className="font-black text-sm text-slate-900 dark:text-white leading-tight truncate">{motm.name}</p>
                                     <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">{managers.find(m => m.id === motm.teamId)?.teamName || 'Unknown'}</p>
@@ -467,6 +526,8 @@ export default function TournamentDashboard() {
                            );
                         })()}
                      </div>
+                  )}
+                    </div>
                   )}
                 </div>
               );
@@ -483,7 +544,7 @@ export default function TournamentDashboard() {
                        <div key={team.id} className="bg-slate-50 dark:bg-[#161618] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                           <div className="bg-slate-100 dark:bg-[#111] p-3 flex items-center gap-3 border-b border-slate-200/50 dark:border-slate-800/50">
                              {team.teamLogo ? (
-                                <img src={team.teamLogo} className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-800" />
+                                <img src={team.teamLogo} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-800" />
                              ) : (
                                 <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-500">
                                    {(team.teamName || 'T').charAt(0)}
@@ -501,7 +562,7 @@ export default function TournamentDashboard() {
                                 teamPlayers.map(p => (
                                    <div key={p.id} className="flex items-center gap-2 bg-white dark:bg-[#0a0a0c] p-1.5 rounded-lg border border-slate-100 dark:border-slate-800/50">
                                       {p.pic ? (
-                                         <img src={p.pic} className="w-6 h-6 rounded-full object-cover" />
+                                         <img src={p.pic} referrerPolicy="no-referrer" className="w-6 h-6 rounded-full object-cover" />
                                       ) : (
                                          <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-400">{p.name.charAt(0)}</div>
                                       )}

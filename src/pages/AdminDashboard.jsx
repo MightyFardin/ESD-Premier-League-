@@ -25,6 +25,11 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
   const [teamBGoals, setTeamBGoals] = useState(fixture?.teamBGoals || 0);
   const [motmId, setMotmId] = useState(fixture?.motmId || '');
 
+  const [bulkEventModal, setBulkEventModal] = useState({ isOpen: false, teamId: '', type: '' });
+  const [bulkPlayerId, setBulkPlayerId] = useState('');
+  const [bulkCount, setBulkCount] = useState(1);
+  const [bulkMinutes, setBulkMinutes] = useState('');
+
   const teamAPlayers = players.filter(p => p.teamId === teamAId && p.status === 'sold');
   const teamBPlayers = players.filter(p => p.teamId === teamBId && p.status === 'sold');
 
@@ -33,11 +38,32 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
      if (teamId === teamAId) setTeamAGoals(prev => prev + 1);
      if (teamId === teamBId) setTeamBGoals(prev => prev + 1);
   };
-  const handleAddSave = (teamId) => {
-     setEvents([...events, { id: Date.now().toString(), teamId, type: 'save', playerId: '', minute: '' }]);
+  const handleAddBulkSave = (teamId) => {
+     setBulkEventModal({ isOpen: true, teamId, type: 'save' });
+     setBulkPlayerId('');
+     setBulkCount(1);
+     setBulkMinutes('');
   };
   const handleAddCleanSheet = (teamId) => {
      setEvents([...events, { id: Date.now().toString(), teamId, type: 'clean_sheet', playerId: '', minute: '' }]);
+  };
+
+  const submitBulkEvent = () => {
+    if (!bulkPlayerId) return;
+    const newEvents = [];
+    if (bulkEventModal.type === 'save') {
+      for (let i = 0; i < bulkCount; i++) {
+         newEvents.push({
+            id: Date.now().toString() + i,
+            teamId: bulkEventModal.teamId,
+            type: 'save',
+            playerId: bulkPlayerId,
+            minute: ''
+         });
+      }
+    }
+    setEvents([...events, ...newEvents]);
+    setBulkEventModal({ isOpen: false, teamId: '', type: '' });
   };
   const handleEventChange = (id, field, value) => {
      setEvents(events.map(e => e.id === id ? { ...e, [field]: value } : e));
@@ -179,7 +205,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                             {plist.length === 0 && <span className="text-xs text-slate-500">No players</span>}
                             {plist.map(p => (
                                <div key={p.id} onClick={() => handleEventChange(ev.id, 'playerId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
-                                  {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-indigo-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-indigo-500" title={p.name}>{p.name.charAt(0)}</div>}
+                                  {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-indigo-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-indigo-500" title={p.name}>{p.name.charAt(0)}</div>}
                                </div>
                             ))}
                          </div>
@@ -190,7 +216,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                                if (!p) return null;
                                return (
                                  <>
-                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
                                    <span className="text-xs font-bold text-slate-900 dark:text-white">{p.name}</span>
                                  </>
                                );
@@ -207,7 +233,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                             <div onClick={() => handleEventChange(ev.id, 'assistId', 'none')} className="shrink-0 cursor-pointer w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-400 hover:text-indigo-500 hover:border-indigo-500" title="No assist">X</div>
                             {plist.filter(p => p.id !== ev.playerId).map(p => (
                                <div key={p.id} onClick={() => handleEventChange(ev.id, 'assistId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
-                                  {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-emerald-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-emerald-500" title={p.name}>{p.name.charAt(0)}</div>}
+                                  {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-emerald-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-emerald-500" title={p.name}>{p.name.charAt(0)}</div>}
                                </div>
                             ))}
                          </div>
@@ -222,7 +248,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                                if (!p) return null;
                                return (
                                  <>
-                                   {p.pic ? <img src={p.pic} className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
+                                   {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
                                    <span className="text-xs font-bold text-slate-900 dark:text-white">{p.name}</span>
                                  </>
                                );
@@ -246,8 +272,8 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
               {teamBId && <button type="button" onClick={() => handleAddGoal(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg border border-indigo-100 dark:border-indigo-800 border-dashed hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">+ GOAL (B)</button>}
             </div>
             <div className="flex gap-2">
-              {teamAId && <button type="button" onClick={() => handleAddSave(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-800 border-dashed hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">+ SAVE (A)</button>}
-              {teamBId && <button type="button" onClick={() => handleAddSave(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-800 border-dashed hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">+ SAVE (B)</button>}
+              {teamAId && <button type="button" onClick={() => handleAddBulkSave(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-800 border-dashed hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">+ ADD SAVES (A)</button>}
+              {teamBId && <button type="button" onClick={() => handleAddBulkSave(teamBId)} className="flex-1 text-[10px] font-bold py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg border border-orange-100 dark:border-orange-800 border-dashed hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">+ ADD SAVES (B)</button>}
             </div>
             <div className="flex gap-2">
               {teamAId && <button type="button" onClick={() => handleAddCleanSheet(teamAId)} className="flex-1 text-[10px] font-bold py-2 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-lg border border-teal-100 dark:border-teal-800 border-dashed hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-colors">+ CLEAN SHEET (A)</button>}
@@ -261,7 +287,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                 <div onClick={() => setMotmId('')} className={`shrink-0 cursor-pointer w-10 h-10 rounded-full border flex items-center justify-center text-xs font-black ${!motmId ? 'bg-indigo-100 text-indigo-600 border-indigo-500 dark:bg-indigo-900/30 dark:border-indigo-500' : 'bg-slate-100 text-slate-400 border-slate-300 dark:bg-slate-800 dark:border-slate-700'}`}>None</div>
                 {[...teamAPlayers, ...teamBPlayers].map(p => (
                    <div key={p.id} onClick={() => setMotmId(p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
-                      {p.pic ? <img src={p.pic} className={`w-10 h-10 rounded-full object-cover ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md' : 'ring-transparent'}`} title={p.name}/> : <div className={`w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md text-indigo-600 dark:text-indigo-400' : 'ring-transparent'}`} title={p.name}>{p.name.charAt(0)}</div>}
+                      {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className={`w-10 h-10 rounded-full object-cover ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md' : 'ring-transparent'}`} title={p.name}/> : <div className={`w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md text-indigo-600 dark:text-indigo-400' : 'ring-transparent'}`} title={p.name}>{p.name.charAt(0)}</div>}
                    </div>
                 ))}
              </div>
@@ -270,9 +296,49 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
       )}
 
       <div className="flex gap-2 pt-2">
-        <button type="button" onClick={onCancel} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-2.5 rounded-lg font-bold text-sm">Cancel</button>
-        <button type="submit" className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-bold text-sm">Save Fixture</button>
+        <button type="button" onClick={onCancel} className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-2.5 rounded-lg font-bold text-sm hover:bg-slate-300 transition-colors">Cancel</button>
+        <button type="submit" className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-indigo-700 transition-colors">Save Fixture</button>
       </div>
+
+      {bulkEventModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white dark:bg-[#161618] rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[90vh]">
+             <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+               <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-200">ADD SAVES</h3>
+               <button type="button" onClick={() => setBulkEventModal({ isOpen: false, teamId: '', type: '' })} className="text-slate-400 hover:text-red-500">
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+               </button>
+             </div>
+             
+             <div className="p-5 overflow-y-auto custom-scrollbar flex-1">
+               <div className="mb-5">
+                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">1. Select Player</label>
+                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {(bulkEventModal.teamId === teamAId ? teamAPlayers : teamBPlayers).map(p => (
+                       <div key={p.id} onClick={() => setBulkPlayerId(p.id)} className={`cursor-pointer rounded-xl border p-2 flex flex-col items-center gap-1.5 transition-all ${bulkPlayerId === p.id ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 shadow-sm' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700'}`}>
+                         {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-500 text-xs">{p.name.charAt(0)}</div>}
+                         <span className={`text-[9px] font-bold text-center truncate w-full ${bulkPlayerId === p.id ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}>{p.name}</span>
+                       </div>
+                    ))}
+                    {(bulkEventModal.teamId === teamAId ? teamAPlayers : teamBPlayers).length === 0 && (
+                       <div className="col-span-full text-center py-4 text-xs font-bold text-slate-400">No players found for this team.</div>
+                    )}
+                 </div>
+               </div>
+
+               <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-2">2. Number of Saves</label>
+                  <input type="number" min="1" value={bulkCount} onChange={e => setBulkCount(parseInt(e.target.value)||1)} className="w-full bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-black focus:border-indigo-500 outline-none" />
+               </div>
+             </div>
+
+             <div className="p-5 border-t border-slate-100 dark:border-slate-800 flex gap-3 shrink-0 bg-slate-50 dark:bg-[#121214] rounded-b-2xl">
+               <button type="button" onClick={() => setBulkEventModal({ isOpen: false, teamId: '', type: '' })} className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 py-3 rounded-xl font-bold text-xs hover:bg-slate-50 transition-colors">Cancel</button>
+               <button type="button" onClick={submitBulkEvent} disabled={!bulkPlayerId} className="flex-[2] bg-indigo-600 text-white py-3 rounded-xl font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30">Confirm & Add</button>
+             </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 };

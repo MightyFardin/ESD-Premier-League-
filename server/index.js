@@ -93,12 +93,39 @@ function broadcastState() {
   io.emit('stateUpdate', processedState);
 }
 
+function fixDriveUrl(url) {
+  if (!url || typeof url !== 'string' || !url.includes('drive.google.com')) return url;
+  try {
+    const urlObj = new URL(url);
+    let fileId = urlObj.searchParams.get('id');
+    if (!fileId) {
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) fileId = match[1];
+    }
+    if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}`;
+  } catch (e) {
+    return url;
+  }
+  return url;
+}
+
 async function startServer() {
   try {
     await initDB();
     const dbState = await loadState(defaultSettings);
-    state.players = dbState.players || [];
-    state.managers = dbState.managers || [];
+    
+    state.players = (dbState.players || []).map(p => {
+       const fixedPic = fixDriveUrl(p.pic);
+       if (fixedPic !== p.pic) { p.pic = fixedPic; savePlayer(p).catch(console.error); }
+       return p;
+    });
+    
+    state.managers = (dbState.managers || []).map(m => {
+       const fixedLogo = fixDriveUrl(m.teamLogo);
+       if (fixedLogo !== m.teamLogo) { m.teamLogo = fixedLogo; saveManager(m).catch(console.error); }
+       return m;
+    });
+    
     state.settings = dbState.settings || defaultSettings;
     state.bids = dbState.bids || [];
     state.logs = dbState.logs || [];
@@ -130,6 +157,7 @@ async function startServer() {
     });
 
     socket.on('importPlayers', async (newPlayers) => {
+      newPlayers = newPlayers.map(p => ({ ...p, pic: fixDriveUrl(p.pic) }));
       state.players.push(...newPlayers);
       broadcastState();
       for (const p of newPlayers) {
