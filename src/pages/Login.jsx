@@ -20,37 +20,20 @@ export default function Login() {
   const totalPlayersSold = players.filter(p => p.status === 'sold').length;
   const highestBid = players.filter(p => p.status === 'sold').reduce((max, p) => Math.max(max, p.soldPrice || 0), 0);
   
-  const [roleSelection, setRoleSelection] = useState('manager'); // 'manager', 'admin', 'podium'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  const loginTypes = [
-    { id: 'manager', label: 'Manager' },
-    { id: 'podium', label: 'Podium' }
-  ];
-
   const handleLogin = (e) => {
     e.preventDefault();
     if (!password) return;
-    
-    if (roleSelection === 'podium') {
-      if (password === (auctionSettings?.auctioneerPassword || '123')) {
-        login({ id: 'auctioneer-id', name: 'Auctioneer', role: 'auctioneer' });
-      } else {
-        showToast('Invalid Podium password!', 'error');
-      }
-      return;
-    }
+    if (!username) return;
 
-    if (roleSelection === 'manager') {
-      if (!username) return;
-      const manager = managers.find(m => m.username === username.trim() && m.password === password);
-      if (manager) {
-        login({ id: manager.id, name: manager.name, role: 'manager' });
-      } else {
-        showToast('Invalid username or password!', 'error');
-      }
+    const manager = managers.find(m => m.username === username.trim() && m.password === password);
+    if (manager) {
+      login({ id: manager.id, name: manager.name, role: 'manager' });
+    } else {
+      showToast('Invalid username or password!', 'error');
     }
   };
 
@@ -312,53 +295,26 @@ export default function Login() {
               </button>
               
               <div className="mb-6 pr-8">
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Access Portal</h2>
-                <p className="text-xs text-slate-500 font-medium">Select your role to continue.</p>
-              </div>
-
-              <div className="flex bg-slate-50 dark:bg-[#111] p-1 rounded-xl mb-6 border border-slate-100 dark:border-slate-800/50 relative">
-                {loginTypes.map((type, i) => (
-                  <button
-                    type="button"
-                    key={type.id}
-                    onClick={() => {
-                      setRoleSelection(type.id);
-                      setUsername('');
-                      setPassword('');
-                    }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all relative z-10 ${
-                      roleSelection === type.id 
-                        ? 'text-slate-900 dark:text-white shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                    }`}
-                  >
-                    {roleSelection === type.id && (
-                       <div className="absolute inset-0 bg-white dark:bg-[#222] rounded-lg border border-slate-200/50 dark:border-slate-700/50 -z-10 shadow-sm transition-all"></div>
-                    )}
-                    {type.label}
-                  </button>
-                ))}
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white mb-1">Manager Login</h2>
+                <p className="text-xs text-slate-500 font-medium">Enter your credentials to continue.</p>
               </div>
 
             <form onSubmit={handleLogin} className="space-y-4 mt-2">
-              {roleSelection === 'manager' && (
-                <div className="animate-slide-up" style={{ animationDuration: '0.3s' }}>
-                  <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Username</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-slate-50 dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-900 dark:focus:border-white transition-all"
-                    placeholder="e.g. manager1"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    required
-                  />
-                </div>
-              )}
+              <div className="animate-slide-up" style={{ animationDuration: '0.3s' }}>
+                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Username</label>
+                <input 
+                  type="text" 
+                  className="w-full bg-slate-50 dark:bg-[#111] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-900 dark:focus:border-white transition-all"
+                  placeholder="e.g. manager1"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  required
+                />
+              </div>
               
               <div className="animate-slide-up" style={{ animationDuration: '0.4s' }}>
                 <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
-                  {roleSelection === 'podium' ? 'Podium Password' : 'Password'}
-
+                  Password
                 </label>
                 <input 
                   type="password" 
