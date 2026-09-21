@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../AuthContext';
 import { useToast } from '../ToastContext';
 import CustomSelect from '../components/CustomSelect';
@@ -14,6 +15,97 @@ const getSessionStr = (studentId) => {
   const prefix = parseInt(prefixStr);
   if (isNaN(prefix)) return 'Unknown';
   return `20${prefixStr}-20${prefix + 1}`;
+};
+
+const PlayerDropdown = ({ value, onChange, options, placeholder, nullOption }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOpt = options.find(o => o.id === value) || (value === 'none' ? { id: 'none', name: nullOption } : null);
+
+  return (
+    <>
+      <div 
+        onClick={() => setIsOpen(true)}
+        className="w-full bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 focus:border-indigo-500 outline-none cursor-pointer flex items-center justify-between shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+      >
+        <div className="flex items-center gap-2 overflow-hidden flex-1">
+          {selectedOpt && selectedOpt.id !== 'none' ? (
+            <>
+              {selectedOpt.pic ? (
+                 <img src={selectedOpt.pic} referrerPolicy="no-referrer" className="w-5 h-5 rounded-full object-cover shrink-0" />
+              ) : (
+                 <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-[8px] shrink-0">{selectedOpt.name.charAt(0)}</div>
+              )}
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{selectedOpt.name}</span>
+            </>
+          ) : (
+            <span className="text-xs font-bold text-slate-400 pl-1">{selectedOpt ? selectedOpt.name : placeholder}</span>
+          )}
+        </div>
+        <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+      </div>
+
+      {isOpen && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={() => setIsOpen(false)}>
+          <div 
+            className="bg-white dark:bg-[#161618] rounded-2xl w-full max-w-sm shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[85vh] animate-slide-up"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+               <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-200">{placeholder}</h3>
+               <button type="button" onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-red-500 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+               </button>
+            </div>
+            
+            <div className="p-3 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-1">
+              {nullOption && (
+                <div 
+                  onClick={() => { onChange('none'); setIsOpen(false); }}
+                  className={`p-3 flex items-center gap-3 cursor-pointer rounded-xl transition-colors ${value === 'none' || value === '' ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-800/50 shadow-sm' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent'}`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-xs font-black text-slate-400 shrink-0">X</div>
+                  <span className="text-sm font-bold text-slate-500">None</span>
+                </div>
+              )}
+              {options.map(p => (
+                <div 
+                  key={p.id}
+                  onClick={() => { onChange(p.id); setIsOpen(false); }}
+                  className={`p-3 flex items-center gap-3 cursor-pointer rounded-xl transition-colors ${value === p.id ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-800/50 shadow-sm' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-transparent'}`}
+                >
+                  {p.pic ? (
+                     <img src={p.pic} referrerPolicy="no-referrer" className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-slate-800" />
+                  ) : (
+                     <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-sm shrink-0">{p.name.charAt(0)}</div>
+                  )}
+                  <div className="flex flex-col overflow-hidden">
+                    <span className={`text-sm font-bold truncate ${value === p.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-200'}`}>{p.name}</span>
+                    {p.position && <span className="text-[10px] uppercase tracking-widest text-slate-500">{p.position}</span>}
+                  </div>
+                </div>
+              ))}
+              {options.length === 0 && (
+                <div className="p-4 text-center text-xs text-slate-400 font-bold">No players available</div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
 };
 
 const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
@@ -50,20 +142,18 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
 
   const submitBulkEvent = () => {
     if (!bulkPlayerId) return;
-    const newEvents = [];
-    if (bulkEventModal.type === 'save') {
-      for (let i = 0; i < bulkCount; i++) {
-         newEvents.push({
-            id: Date.now().toString() + i,
-            teamId: bulkEventModal.teamId,
-            type: 'save',
-            playerId: bulkPlayerId,
-            minute: ''
-         });
-      }
-    }
-    setEvents([...events, ...newEvents]);
+    const newEvent = {
+      id: Date.now().toString(),
+      teamId: bulkEventModal.teamId,
+      type: 'save',
+      playerId: bulkPlayerId,
+      minute: '',
+      count: bulkCount
+    };
+    setEvents([...events, newEvent]);
     setBulkEventModal({ isOpen: false, teamId: '', type: '' });
+    setBulkCount(1);
+    setBulkPlayerId('');
   };
   const handleEventChange = (id, field, value) => {
      setEvents(events.map(e => e.id === id ? { ...e, [field]: value } : e));
@@ -147,7 +237,7 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4 p-4 md:p-6 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-xl space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex flex-col md:flex-row gap-3 relative">
         <TeamPicker selectedId={teamAId} onSelect={setTeamAId} label="Team A" excludeId={teamBId} />
         <span className="self-center font-bold text-slate-400 text-xs hidden md:block px-2">VS</span>
@@ -200,67 +290,38 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
                  <div className="flex flex-col md:flex-row gap-3">
                     <div className="flex-1 space-y-1">
                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{ev.type === 'goal' ? 'Scorer' : 'Player'}</p>
-                       {!ev.playerId ? (
-                         <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
-                            {plist.length === 0 && <span className="text-xs text-slate-500">No players</span>}
-                            {plist.map(p => (
-                               <div key={p.id} onClick={() => handleEventChange(ev.id, 'playerId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
-                                  {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-indigo-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-indigo-500" title={p.name}>{p.name.charAt(0)}</div>}
-                               </div>
-                            ))}
-                         </div>
-                       ) : (
-                         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => handleEventChange(ev.id, 'playerId', '')} title="Click to change scorer">
-                            {(() => {
-                               const p = plist.find(pl => pl.id === ev.playerId);
-                               if (!p) return null;
-                               return (
-                                 <>
-                                   {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
-                                   <span className="text-xs font-bold text-slate-900 dark:text-white">{p.name}</span>
-                                 </>
-                               );
-                            })()}
-                         </div>
-                       )}
+                       <PlayerDropdown 
+                         value={ev.playerId || ''} 
+                         onChange={(val) => handleEventChange(ev.id, 'playerId', val)}
+                         options={plist}
+                         placeholder="Select Player"
+                       />
                     </div>
                     
                     {ev.type === 'goal' && (
                     <div className="flex-1 space-y-1">
                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Assist (Optional)</p>
-                       {!ev.assistId ? (
-                         <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
-                            <div onClick={() => handleEventChange(ev.id, 'assistId', 'none')} className="shrink-0 cursor-pointer w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-400 hover:text-indigo-500 hover:border-indigo-500" title="No assist">X</div>
-                            {plist.filter(p => p.id !== ev.playerId).map(p => (
-                               <div key={p.id} onClick={() => handleEventChange(ev.id, 'assistId', p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
-                                  {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent hover:ring-emerald-500" title={p.name}/> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] ring-2 ring-transparent hover:ring-emerald-500" title={p.name}>{p.name.charAt(0)}</div>}
-                               </div>
-                            ))}
-                         </div>
-                       ) : ev.assistId === 'none' ? (
-                         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => handleEventChange(ev.id, 'assistId', '')} title="Click to change assist">
-                            <span className="text-xs font-bold text-slate-500">None</span>
-                         </div>
-                       ) : (
-                         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80" onClick={() => handleEventChange(ev.id, 'assistId', '')} title="Click to change assist">
-                            {(() => {
-                               const p = plist.find(pl => pl.id === ev.assistId);
-                               if (!p) return null;
-                               return (
-                                 <>
-                                   {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full object-cover" /> : <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px]">{p.name.charAt(0)}</div>}
-                                   <span className="text-xs font-bold text-slate-900 dark:text-white">{p.name}</span>
-                                 </>
-                               );
-                            })()}
-                         </div>
-                       )}
+                       <PlayerDropdown 
+                         value={ev.assistId || ''} 
+                         onChange={(val) => handleEventChange(ev.id, 'assistId', val)}
+                         options={plist.filter(p => p.id !== ev.playerId)}
+                         placeholder="No Assist"
+                         nullOption="No Assist"
+                       />
                     </div>
                     )}
                     
                     <div className="w-full md:w-20 space-y-1">
-                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Minute</p>
-                       <input type="number" value={ev.minute} onChange={e => handleEventChange(ev.id, 'minute', e.target.value)} placeholder="Min" className="w-full bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs focus:border-indigo-500 outline-none font-bold" />
+                       <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                         {ev.type === 'save' || ev.type === 'clean_sheet' ? 'Count' : 'Minute'}
+                       </p>
+                       <input 
+                         type="number" 
+                         value={ev.type === 'save' || ev.type === 'clean_sheet' ? (ev.count || 1) : ev.minute} 
+                         onChange={e => handleEventChange(ev.id, ev.type === 'save' || ev.type === 'clean_sheet' ? 'count' : 'minute', ev.type === 'save' || ev.type === 'clean_sheet' ? (parseInt(e.target.value) || 1) : e.target.value)} 
+                         placeholder={ev.type === 'save' || ev.type === 'clean_sheet' ? "Qty" : "Min"} 
+                         className="w-full bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs focus:border-indigo-500 outline-none font-bold" 
+                       />
                     </div>
                  </div>
               </div>
@@ -283,13 +344,14 @@ const FixtureForm = ({ fixture, managers, players, onSave, onCancel }) => {
           
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Man of the Match</p>
-             <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
-                <div onClick={() => setMotmId('')} className={`shrink-0 cursor-pointer w-10 h-10 rounded-full border flex items-center justify-center text-xs font-black ${!motmId ? 'bg-indigo-100 text-indigo-600 border-indigo-500 dark:bg-indigo-900/30 dark:border-indigo-500' : 'bg-slate-100 text-slate-400 border-slate-300 dark:bg-slate-800 dark:border-slate-700'}`}>None</div>
-                {[...teamAPlayers, ...teamBPlayers].map(p => (
-                   <div key={p.id} onClick={() => setMotmId(p.id)} className="shrink-0 cursor-pointer hover:scale-110 transition-transform">
-                      {p.pic ? <img src={p.pic} referrerPolicy="no-referrer" className={`w-10 h-10 rounded-full object-cover ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md' : 'ring-transparent'}`} title={p.name}/> : <div className={`w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs ring-2 ${motmId === p.id ? 'ring-indigo-500 shadow-md text-indigo-600 dark:text-indigo-400' : 'ring-transparent'}`} title={p.name}>{p.name.charAt(0)}</div>}
-                   </div>
-                ))}
+             <div className="w-full max-w-sm">
+                <PlayerDropdown 
+                  value={motmId || ''} 
+                  onChange={(val) => setMotmId(val === 'none' ? '' : val)}
+                  options={[...teamAPlayers, ...teamBPlayers]}
+                  placeholder="Select MOTM"
+                  nullOption="None"
+                />
              </div>
           </div>
         </div>
@@ -1099,14 +1161,27 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {(isAddingFixture || editingFixture) && (
-              <FixtureForm 
-                fixture={editingFixture} 
-                managers={managers} 
-                players={players} 
-                onSave={saveFixture} 
-                onCancel={() => { setEditingFixture(null); setIsAddingFixture(false); }} 
-              />
+            {(isAddingFixture || editingFixture) && createPortal(
+              <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={() => { setEditingFixture(null); setIsAddingFixture(false); }}>
+                <div className="w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white dark:bg-[#111] rounded-2xl shadow-2xl animate-slide-up flex flex-col" onClick={e => e.stopPropagation()}>
+                  <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0 bg-slate-50 dark:bg-[#161618]">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-800 dark:text-slate-200">{editingFixture ? 'Edit Fixture' : 'Add Fixture'}</h3>
+                    <button type="button" onClick={() => { setEditingFixture(null); setIsAddingFixture(false); }} className="text-slate-400 hover:text-red-500 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                  <div className="p-5 overflow-y-auto custom-scrollbar flex-1">
+                    <FixtureForm 
+                      fixture={editingFixture} 
+                      managers={managers} 
+                      players={players} 
+                      onSave={saveFixture} 
+                      onCancel={() => { setEditingFixture(null); setIsAddingFixture(false); }} 
+                    />
+                  </div>
+                </div>
+              </div>,
+              document.body
             )}
 
             <div className="space-y-2">

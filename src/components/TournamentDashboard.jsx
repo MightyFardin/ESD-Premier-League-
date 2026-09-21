@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../AuthContext';
 import Countdown from './Countdown';
 
@@ -96,6 +97,8 @@ export default function TournamentDashboard() {
   const [expandedScorer, setExpandedScorer] = useState(null);
   const [expandedAssist, setExpandedAssist] = useState(null);
   const [expandedFixtures, setExpandedFixtures] = useState({});
+  const [expandedTeams, setExpandedTeams] = useState({});
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const toggleFixture = (fixtureId) => {
     setExpandedFixtures(prev => ({
@@ -177,14 +180,14 @@ export default function TournamentDashboard() {
     fixtures.forEach(f => {
       (f.events || []).forEach(e => {
         if (e.type === 'goal') {
-          if (e.playerId === p.id) goals++;
-          if (e.assistId === p.id) assists++;
+          if (e.playerId === p.id) goals += (e.count || 1);
+          if (e.assistId === p.id) assists += (e.count || 1);
         }
         if (e.type === 'save' && e.playerId === p.id) {
-          saves++;
+          saves += (e.count || 1);
         }
         if (e.type === 'clean_sheet' && e.playerId === p.id) {
-          cleanSheets++;
+          cleanSheets += (e.count || 1);
         }
       });
       if (f.status === 'completed' && f.motmId === p.id) {
@@ -540,6 +543,7 @@ export default function TournamentDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                  {managers.map(team => {
                     const teamPlayers = players.filter(p => p.teamId === team.id && p.status === 'sold');
+                    const isExpanded = expandedTeams[team.id];
                     return (
                        <div key={team.id} className="bg-slate-50 dark:bg-[#161618] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                           <div className="bg-slate-100 dark:bg-[#111] p-3 flex items-center gap-3 border-b border-slate-200/50 dark:border-slate-800/50">
@@ -554,26 +558,38 @@ export default function TournamentDashboard() {
                                 <h3 className="font-bold text-sm text-slate-900 dark:text-white truncate">{team.teamName || team.name}</h3>
                                 <p className="text-[10px] font-medium text-slate-500">{teamPlayers.length} Players</p>
                              </div>
+                             <button
+                                onClick={() => setExpandedTeams(prev => ({ ...prev, [team.id]: !prev[team.id] }))}
+                                className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors shrink-0"
+                             >
+                                {isExpanded ? 'Hide' : 'View Players'}
+                             </button>
                           </div>
-                          <div className="p-4 space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
-                             {teamPlayers.length === 0 ? (
-                                <p className="text-center text-xs text-slate-500 py-4">No players yet.</p>
-                             ) : (
-                                teamPlayers.map(p => (
-                                   <div key={p.id} className="flex items-center gap-2 bg-white dark:bg-[#0a0a0c] p-1.5 rounded-lg border border-slate-100 dark:border-slate-800/50">
-                                      {p.pic ? (
-                                         <img src={p.pic} referrerPolicy="no-referrer" className="w-6 h-6 rounded-full object-cover" />
-                                      ) : (
-                                         <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-400">{p.name.charAt(0)}</div>
-                                      )}
-                                      <div className="overflow-hidden flex-1 flex items-center justify-between">
-                                         <p className="font-medium text-xs text-slate-800 dark:text-slate-300 truncate">{p.name}</p>
-                                         <p className="text-[9px] text-slate-400 uppercase">{p.position}</p>
+                          {isExpanded && (
+                             <div className="p-4 space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
+                                {teamPlayers.length === 0 ? (
+                                   <p className="text-center text-xs text-slate-500 py-4">No players yet.</p>
+                                ) : (
+                                   teamPlayers.map(p => (
+                                      <div 
+                                        key={p.id} 
+                                        onClick={() => setSelectedPlayer(p)}
+                                        className="flex items-center gap-2 bg-white dark:bg-[#0a0a0c] p-1.5 rounded-lg border border-slate-100 dark:border-slate-800/50 cursor-pointer hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors"
+                                      >
+                                         {p.pic ? (
+                                            <img src={p.pic} referrerPolicy="no-referrer" className="w-6 h-6 rounded-full object-cover" />
+                                         ) : (
+                                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-400">{p.name.charAt(0)}</div>
+                                         )}
+                                         <div className="overflow-hidden flex-1 flex items-center justify-between">
+                                            <p className="font-medium text-xs text-slate-800 dark:text-slate-300 truncate">{p.name}</p>
+                                            <p className="text-[9px] text-slate-400 uppercase">{p.position}</p>
+                                         </div>
                                       </div>
-                                   </div>
-                                ))
-                             )}
-                          </div>
+                                   ))
+                                )}
+                             </div>
+                          )}
                        </div>
                     );
                  })}
@@ -673,6 +689,70 @@ export default function TournamentDashboard() {
            </div>
         )}
       </div>
+
+      {/* Player Stats Modal */}
+      {selectedPlayer && createPortal(
+         <div className="fixed top-0 left-0 right-0 bottom-0 w-screen h-screen z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedPlayer(null)}></div>
+            <div className="relative bg-white dark:bg-[#111] w-full max-w-sm rounded-[2rem] shadow-2xl p-6 animate-slide-up overflow-hidden flex flex-col items-center text-center">
+               <button onClick={() => setSelectedPlayer(null)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+               </button>
+               
+               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-indigo-100 dark:border-indigo-900/30 overflow-hidden mb-4 shadow-lg shrink-0">
+                  {selectedPlayer.pic ? (
+                     <img src={selectedPlayer.pic} alt={selectedPlayer.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  ) : (
+                     <div className="w-full h-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-5xl text-slate-400">
+                        {selectedPlayer.name.charAt(0)}
+                     </div>
+                  )}
+               </div>
+               
+               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 leading-tight">{selectedPlayer.name}</h2>
+               <div className="flex items-center justify-center gap-2 mb-6">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2.5 py-1 rounded-md">{selectedPlayer.position}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md">
+                     {managers.find(m => m.id === selectedPlayer.teamId)?.teamName || 'Unknown'}
+                  </span>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-3 w-full">
+                  {(() => {
+                     const stats = playerStats.find(p => p.id === selectedPlayer.id) || { goals: 0, assists: 0, saves: 0, cleanSheets: 0, motms: 0 };
+                     return (
+                        <>
+                           <div className="bg-slate-50 dark:bg-[#161618] p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 flex flex-col items-center">
+                              <span className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-1">{stats.goals}</span>
+                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Goals</span>
+                           </div>
+                           <div className="bg-slate-50 dark:bg-[#161618] p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 flex flex-col items-center">
+                              <span className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-1">{stats.assists}</span>
+                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Assists</span>
+                           </div>
+                           <div className="bg-slate-50 dark:bg-[#161618] p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 flex flex-col items-center">
+                              <span className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-1">{stats.saves}</span>
+                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Saves</span>
+                           </div>
+                           <div className="bg-slate-50 dark:bg-[#161618] p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 flex flex-col items-center">
+                              <span className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-1">{stats.cleanSheets}</span>
+                              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Clean Sheets</span>
+                           </div>
+                           <div className="col-span-2 bg-amber-50 dark:bg-amber-900/10 p-3 rounded-xl border border-amber-200 dark:border-amber-900/30 flex flex-col items-center mt-1">
+                              <span className="text-xl font-black text-amber-600 dark:text-amber-500 leading-none mb-1">{stats.motms}</span>
+                              <span className="text-[9px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1">
+                                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                                 Man of the Match
+                              </span>
+                           </div>
+                        </>
+                     );
+                  })()}
+               </div>
+            </div>
+         </div>,
+         document.body
+      )}
     </div>
   );
 }
